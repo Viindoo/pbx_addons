@@ -2,7 +2,7 @@
 # -*- encoding: utf-8 -*-
 {
     'name': 'Asterisk Plus Yeastar',
-    'live_test_url': 'https://pbx-demo-15.oduist.com/',
+    'live_test_url': 'https://pbx-demo-18.oduist.com/',
     'version': '1.0',
     'author': 'Oduist',
     'price': 0,
