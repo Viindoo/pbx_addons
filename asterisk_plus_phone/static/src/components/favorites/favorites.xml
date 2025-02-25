@@ -21,7 +21,7 @@
                             <t t-set="avatar" t-value="'/asterisk_plus_phone/static/src/images/default_contact.jpg'"/>
                             <t t-set="caller_id" t-value="favorite.display_phone_number"/>
                         </t>
-                        <tr class="d-flex" t-on-click="() => this._onClickContactCall(favorite.phone_number)" t-attf-title="Call to {{favorite.display_phone_number}}">
+                        <tr class="d-flex" t-on-click="_onClickContactCall(favorite.phone_number)" t-attf-title="Call to {{favorite.display_phone_number}}">
                             <td class="o_partner_icon">
                                 <div class="partner-icon">
                                     <img class="rounded-circle o_user_avatar" alt="User" t-att-src="avatar"/>
@@ -39,7 +39,7 @@
                                     </div>
                                 </div>
                                 <div class="o_favorite">
-                                    <button aria-label="Remove from Favorite" title="Remove from Favorite" t-on-click="(ev) => this._onClickRemoveFavorite(ev, favorite.id)">
+                                    <button aria-label="Remove from Favorite" title="Remove from Favorite" t-on-click="(ev) => _onClickRemoveFavorite(ev, favorite.id)">
                                         <i class="fa fa-trash-o"/>
                                     </button>
                                 </div>

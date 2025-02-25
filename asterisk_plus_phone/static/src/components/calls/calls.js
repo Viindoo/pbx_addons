@@ -1,17 +1,14 @@
 /** @odoo-module **/
 
 import {useService} from "@web/core/utils/hooks"
-import {Component, useState, onWillStart} from "@odoo/owl"
-import {session} from "@web/session"
+import {uid} from "web.session"
 import {maskNumber} from "@asterisk_plus_phone/js/utils"
 
-const uid = session.uid
+const {Component, useState} = owl
+const {onWillStart} = owl.hooks
 
 class CallDetail extends Component {
     static template = 'asterisk_plus_phone.call_detail'
-    static props = {
-        call: Object
-    }
 
     constructor() {
         super(...arguments)
@@ -93,9 +90,6 @@ class CallDetail extends Component {
 
 export class Calls extends Component {
     static template = 'asterisk_plus_phone.calls'
-    static props = {
-        bus: Object,
-    }
     static components = {CallDetail}
 
     constructor() {
@@ -117,9 +111,9 @@ export class Calls extends Component {
         })
 
         onWillStart(async () => {
-            this.bus.addEventListener('busCallsGetCalls', (ev) => this._getCalls(ev))
-            this.bus.addEventListener('busCallsGetFavorites', (ev) => this._getFavorites(ev))
-            this.bus.addEventListener('busBugReport', (ev) => this._busBugReport(ev))
+            this.bus.on('busCallsGetCalls', this, this._getCalls)
+            this.bus.on('busCallsGetFavorites', this, this._getFavorites)
+            this.bus.on('busBugReport', this, this._busBugReport)
             await this._getFavorites()
             this.isMaskCallNumber = await this.orm.call('asterisk_plus.user', 'get_param', ['mask_call_number'])
         })
@@ -192,7 +186,7 @@ export class Calls extends Component {
         const getFavorite = await this.orm.search('asterisk_plus_phone.favorite', domain)
 
         if (getFavorite.length === 0) {
-            await this.orm.create('asterisk_plus_phone.favorite', [kwargs])
+            await this.orm.create('asterisk_plus_phone.favorite', kwargs)
             this.notification.add('Added to Favorite!', {title: 'Phone', type: 'info'})
             this._getFavorites()
         } else {

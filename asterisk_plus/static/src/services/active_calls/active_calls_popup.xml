@@ -20,15 +20,15 @@
                         </thead>
                         <tbody>
                             <t t-foreach="state.calls" t-as="call" t-key="call.id">
-                                <tr t-on-click="() => this._OpenActiveCallForm(call.id)">
+                                <tr t-on-click="() => _OpenActiveCallForm(call.id)">
                                     <td><t t-esc="call.calling_number"/></td>
                                     <td><t t-esc="call.called_number"/></td>
                                     <td><t t-if="call.calling_user" t-esc="call.calling_user[1]"/></td>
                                     <td><t t-if="call.answered_user" t-esc="call.answered_user[1]"/></td>
-                                    <td t-on-click="(ev) => this._openPartnerForm(ev, call.partner)">
+                                    <td t-on-click="(ev) => _openPartnerForm(ev, call.partner)">
                                         <t t-if="call.partner" t-esc="call.partner[1]"/>
                                     </td>
-                                    <td t-on-click="(ev) => this._openReferenceForm(ev, call.ref)">
+                                    <td t-on-click="(ev) => _openReferenceForm(ev, call.ref)">
                                         <t t-if="call.ref" t-esc="call.ref_name"/>
                                     </td>
                                     <td>

@@ -2,12 +2,15 @@
   $color-gray: #90a0af;
   $color-red: #d92929;
 
+  z-index: 1;
   height: 36px !important;
+  border-radius: 50%;
+  border: 2px solid $color-red;
+  background: $color-red !important;
   position: absolute !important;
   top: 48px;
-  border: none;
-  border-radius: 50%;
-  background: transparent !important;
+  margin-left: 5px;
+  padding: 0 0.5rem !important;
 
   &:hover {
     cursor: pointer;
@@ -15,10 +18,7 @@
 
   i {
     color: white;
-    background: #d92929 !important;
-    font-size: x-large;
-    border-radius: 50%;
-    padding: 5px;
+    font-size: large;
   }
 }
 
@@ -60,14 +60,12 @@
       cursor: pointer;
       background: #6b5ba8;
       border-radius: 5px;
-      width: 100px;
     }
   }
 
   span {
-    flex: 1;
-    color: white;
-    margin: 0 0.5rem !important;
+    margin: 0.5rem 1rem !important;
+
   }
 }
 

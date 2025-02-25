@@ -34,13 +34,13 @@
               <sheet>
                 <field name="is_module_update" invisible="1"/>
                 <widget name="web_ribbon" text="New version available!" bg_color="bg-primary"
-                        invisible="is_module_update != True"/>
+                        attrs="{'invisible': [('is_module_update', '!=', True)]}"/>
                 <div class="oe_button_box" name="button_box">
                 </div>
                 <div class="oe_title" name="title">
                   <label for="name" class="oe_edit_only"/>
                   <h1><field name="name"/></h1>
-                  <div invisible="is_module_update != True">
+                  <div attrs="{'invisible': [('is_module_update', '!=', True)]}">
                     <small><field name="market_download_link" nolabel="1"/></small>
                   </div>
                 </div>
@@ -63,10 +63,10 @@
                     </group>
                     <group>
                       <field name="agent_options">
-                        <list editable="bottom">
+                        <tree editable="bottom">
                           <field name="key"/>
                           <field name="value"/>
-                        </list>
+                        </tree>
                       </field>
                     </group>
                   </page>
@@ -75,20 +75,20 @@
                       <group>
                         <field name="auto_create_pbx_users"/>
                         <field name="sip_peer_start_exten"
-                               invisible="auto_create_pbx_users == False"/>
+                               attrs="{'invisible': [('auto_create_pbx_users', '=', False)]}"/>
                         <field name="generate_sip_peers"/>
                         <field name="sip_peer_transport"
-                               invisible="generate_sip_peers == False"/>
+                               attrs="{'invisible': [('generate_sip_peers', '=', False)]}"/>
                         <field name="sip_protocol"
-                               invisible="generate_sip_peers == False"/>
+                               attrs="{'invisible': [('generate_sip_peers', '=', False)]}"/>
                         <field name="security_token"
-                               invisible="generate_sip_peers == False"/>
+                               attrs="{'invisible': [('generate_sip_peers', '=', False)]}"/>
                       </group>
                       <group>
                         <field name="sip_peer_template"
-                               invisible="generate_sip_peers == False"/>
+                               attrs="{'invisible': [('generate_sip_peers', '=', False)]}"/>
                         <field name="sip_templates"
-                               invisible="generate_sip_peers == False"/>
+                               attrs="{'invisible': [('generate_sip_peers', '=', False)]}"/>
                       </group>
                     </group>
                   </page>

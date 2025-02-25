@@ -1,9 +1,11 @@
 /** @odoo-module **/
 
 import {useService} from "@web/core/utils/hooks"
+import {uid} from "web.session"
 import {setFocus, maskNumber} from "@asterisk_plus_phone/js/utils"
-import {Component, useState, useRef, onWillStart} from "@odoo/owl"
-import {useDebounced} from "@web/core/utils/timing"
+
+const {Component} = owl
+const {useState, useRef, onWillStart, onWillUnmount, onMounted} = owl.hooks
 
 const searching = {
     all: 'all',
@@ -13,13 +15,6 @@ const searching = {
 
 export class Contacts extends Component {
     static template = 'asterisk_plus_phone.contacts'
-    static props = {
-        bus: Object,
-        isTransfer: { type: Boolean, optional: true },
-        isContact: { type: Boolean, optional: true },
-        isForward: { type: Boolean, optional: true },
-        contactSearch: { type: String, optional: true },
-    }
 
     constructor() {
         super(...arguments)
@@ -38,9 +33,6 @@ export class Contacts extends Component {
         this.orm = useService('orm')
         this.action = useService('action')
         this.contactInput = useRef('contact-input')
-        this.debounceSearchContact = useDebounced((ev)=> {
-            this._onSearchContact(ev)
-        }, 400)
         this.state = useState({
             isContactMode: false,
             partners: [],
@@ -48,9 +40,9 @@ export class Contacts extends Component {
         })
 
         onWillStart(async () => {
-            this.bus.addEventListener('busContactSetState', ({detail}) => this._busContactSetState(detail))
-            this.bus.addEventListener('busContactSearchQuery', ({detail}) => this._busContactSearchQuery(detail))
-            this.bus.addEventListener('busBugReport', ({detail}) => this._busBugReport(detail))
+            this.bus.on('busContactSetState', this, this._busContactSetState)
+            this.bus.on('busContactSearchQuery', this, this._busContactSearchQuery)
+            this.bus.on('busBugReport', this, this._busBugReport)
             this.isMaskCallNumber = await this.orm.call('asterisk_plus.user', 'get_param', ['mask_call_number'])
         })
     }

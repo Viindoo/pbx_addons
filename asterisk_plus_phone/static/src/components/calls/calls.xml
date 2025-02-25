@@ -84,12 +84,12 @@
 
                         <tr class="d-flex">
                             <td class="o_partner_icon">
-                                <div class="partner-icon" t-on-click="() => this._open_detail(call)" title="Click to view detail">
+                                <div class="partner-icon" t-on-click="_open_detail(call)" title="Click to view detail">
                                     <img class="rounded-circle o_user_avatar" alt="User" t-att-src="avatar"/>
                                 </div>
                             </td>
                             <td class="o_history_info w-100 d-flex flex-row">
-                                <div class="d-flex flex-column info-card" t-on-click="() => this._onClickContactCall(caller_number)" t-attf-title="Call to {{caller_id}} tel:{{call.display_caller_number}}">
+                                <div class="d-flex flex-column info-card" t-on-click="_onClickContactCall(caller_number)" t-attf-title="Call to {{caller_id}} tel:{{call.display_caller_number}}">
                                     <div>
                                         <div class="card-identifier">
                                             <t t-esc="caller_id"/>
@@ -106,7 +106,7 @@
                                     </div>
                                 </div>
                                 <div class="o_favorite">
-                                    <button aria-label="Favorite" t-attf-title="{{call.favorite ? `Remove ${caller_id} from ` : `Add ${caller_id} to`}} Favorite" t-on-click="() => this._onClickFavorite(call)">
+                                    <button aria-label="Favorite" t-attf-title="{{call.favorite ? `Remove ${caller_id} from ` : `Add ${caller_id} to`}} Favorite" t-on-click="_onClickFavorite(call)">
                                         <i t-attf-class="fa {{call.favorite ? 'fa-star' : 'fa-star-o'}}"/>
                                     </button>
                                 </div>
@@ -120,7 +120,7 @@
             <div class="o_call_detail_header">
                 <i class="fa fa-arrow-circle-left" t-on-click="_close_call_detail"/>
             </div>
-            <CallDetail call="state.call"/>
+            <CallDetail call="state.call" phone_configs="phone_configs"/>
         </div>
     </t>
 

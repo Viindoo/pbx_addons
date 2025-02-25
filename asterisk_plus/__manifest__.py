@@ -2,7 +2,7 @@
 # -*- encoding: utf-8 -*-
 {
     'name': 'Asterisk Plus',
-    'live_test_url': 'https://pbx-demo-18.oduist.com/',
+    'live_test_url': 'https://pbx-demo-15.oduist.com/',
     'version': '4.0',
     'author': 'Oduist',
     'price': 0,
@@ -68,6 +68,10 @@
             '/asterisk_plus/static/src/widgets/phone_field/*',
             '/asterisk_plus/static/src/services/actions/*',
             '/asterisk_plus/static/src/services/active_calls/*',
+        ],
+        'web.assets_qweb': [
+            '/asterisk_plus/static/src/services/active_calls/active_calls_popup.xml',
+            '/asterisk_plus/static/src/services/active_calls/active_calls_tray.xml',
         ],
     }
 }

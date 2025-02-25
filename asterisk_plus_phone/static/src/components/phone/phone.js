@@ -1,23 +1,19 @@
 /** @odoo-module **/
 "use strict"
-import { loadJS } from "@web/core/assets"
-import { useService } from "@web/core/utils/hooks"
-import { Calls } from "@asterisk_plus_phone/components/calls/calls"
-import { Favorites } from "@asterisk_plus_phone/components/favorites/favorites"
-import { Contacts } from "@asterisk_plus_phone/components/contacts/contacts"
-import { browser, dialTone, setFocus, maskNumber } from "@asterisk_plus_phone/js/utils"
-import { Component, useState, useRef, onWillStart, onMounted, markup } from "@odoo/owl"
-import { useDebounced } from "@web/core/utils/timing"
-import { user } from "@web/core/user"
+import {useService} from "@web/core/utils/hooks"
+import {uid} from "web.session"
+import {Calls} from "@asterisk_plus_phone/components/calls/calls"
+import {Favorites} from "@asterisk_plus_phone/components/favorites/favorites"
+import {Contacts} from "@asterisk_plus_phone/components/contacts/contacts"
+import {browser, dialTone, setFocus, maskNumber} from "@asterisk_plus_phone/js/utils"
 
-const uid = user.userId
+const {Component} = owl
+const {useState, useRef, onWillStart, onMounted} = owl.hooks
+const {loadJS} = owl.utils
 
 export class Phone extends Component {
     static template = 'asterisk_plus_phone.phone'
-    static props = {
-        bus: Object,
-    }
-    static components = { Calls, Favorites, Contacts }
+    static components = {Calls, Favorites, Contacts}
 
     constructor() {
         super(...arguments)
@@ -84,7 +80,7 @@ export class Phone extends Component {
         this.callDuration = 0
         this.callDurationTimerInstance = null
         this.phoneInput = useRef('phone-input')
-
+        this.enterPhoneNumberTimer = null
         this.userInput = useRef('user-input')
         this.user = uid
         this.phone_configs = {
@@ -129,16 +125,13 @@ export class Phone extends Component {
         this.orm = useService('orm')
         this.action = useService('action')
         this.notification = useService("notification")
-        this.debounceEnterPhoneNumber = useDebounced(async (ev) => {
-            this._onEnterPhoneNumber(ev)
-        }, 400)
 
-        this.notify = (message, { title = 'Phone', sticky = null, type = 'info' }) => {
+        this.notify = (message, {title = 'Phone', sticky = null, type = 'info', messageIsHtml = false}) => {
             if (sticky === null) {
                 sticky = this.call_popup_is_sticky
             }
             if (this.call_popup_is_enabled) {
-                this.notification.add(message, { title, sticky, type })
+                this.notification.add(message, {title, sticky, type, messageIsHtml})
             }
         }
 
@@ -150,20 +143,20 @@ export class Phone extends Component {
             this.testPlayer.volume = 0.5
 
             // EVENTS
-            this.bus.addEventListener('busPhoneMakeCall', ({ detail }) => this.prepareCall(detail))
+            this.bus.on('busPhoneMakeCall', this, this.prepareCall)
 
-            this.bus.addEventListener('busPhoneMakeTransfer', ({ detail }) => this._busPhoneMakeTransfer(detail))
+            this.bus.on('busPhoneMakeTransfer', this, this._busPhoneMakeTransfer)
 
-            this.bus.addEventListener('busPhoneMakeForward', ({ detail }) => this._busPhoneMakeForward(detail))
+            this.bus.on('busPhoneMakeForward', this, this._busPhoneMakeForward)
 
-            this.bus.addEventListener('busPhoneToggleDisplay', ({ detail }) => this._busPhoneToggleDisplay(detail))
+            this.bus.on('busPhoneToggleDisplay', this, this._busPhoneToggleDisplay)
 
-            this.bus.addEventListener('busPhoneHangUp', ({ detail }) => this._busPhoneHangUp(detail))
+            this.bus.on('busPhoneHangUp', this, this._busPhoneHangUp)
 
-            this.bus.addEventListener('busBugReport', ({ detail }) => this._busBugReport(detail))
+            this.bus.on('busBugReport', this, this._busBugReport)
 
             // Get USER configs
-            const { user_config, phone_config } = await this.orm.call('res.users', 'get_sip_user_config', [uid])
+            const {user_config, phone_config} = await this.orm.call('res.users', 'get_sip_user_config', [uid])
             this.call_popup_is_enabled = phone_config.call_popup_is_enabled
             this.call_popup_is_sticky = phone_config.call_popup_is_sticky
             this.phone_ring_volume = phone_config.phone_ring_volume
@@ -208,9 +201,9 @@ export class Phone extends Component {
 
             window.addEventListener("unload", (event) => {
                 if (this.session) {
-                    const params = { id: this.id, action: 'pop' }
-                    this.bc.postMessage({ event: 'bcSipSession', params })
-                    this.bc.postMessage({ event: "bcCloseTab", params: { id: this.id } })
+                    const params = {id: this.id, action: 'pop'}
+                    this.bc.postMessage({event: 'bcSipSession', params})
+                    this.bc.postMessage({event: "bcCloseTab", params: {id: this.id}})
                     this.session.terminate()
                 }
             })
@@ -261,12 +254,12 @@ export class Phone extends Component {
             }, true)
             // BroadcastChannel Events
             const self = this
-            this.bc.onmessage = ({ data: { event, params } }) => {
+            this.bc.onmessage = ({data: {event, params}}) => {
                 // console.log('bc.onMessage', {event, params})
                 const localStartCall = () => {
                     if (self.session) return
                     // console.log('bcStartCall -> ... INIT')
-                    const { callerId, isPartner } = params
+                    const {callerId, isPartner} = params
                     self.state.isPartner = isPartner
                     self.state.callerId = callerId
 
@@ -281,8 +274,8 @@ export class Phone extends Component {
                     }
                     localStartCall()
                     if (self.id === self.windows.at(-1) && !self.session) {
-                        const ringParams = { id: self.sipSessions[0] }
-                        self.bc.postMessage({ event: "bcRing", params: ringParams })
+                        const ringParams = {id: self.sipSessions[0]}
+                        self.bc.postMessage({event: "bcRing", params: ringParams})
                     }
                 } else if (event === 'bcAnswerCall') {
                     // console.log('bcAnswerCall', params)
@@ -313,7 +306,7 @@ export class Phone extends Component {
                     self.windows.push(params.id)
                     if (self.session) {
                         const syncParams = self.getJsonCallData()
-                        self.bc.postMessage({ event: "bcSync", params: syncParams })
+                        self.bc.postMessage({event: "bcSync", params: syncParams})
                     }
                 } else if (event === 'bcCloseTab') {
                     // console.log('bcCloseTab', params)
@@ -371,7 +364,7 @@ export class Phone extends Component {
                     }
                 } else if (event === 'bcSipSession') {
                     // console.log('bcSipSession', params)
-                    const { action } = params
+                    const {action} = params
                     if (action === 'push') {
                         self.sipSessions.push(params.id)
                     } else if (action === 'clear') {
@@ -390,7 +383,7 @@ export class Phone extends Component {
                     if (params.id === self.id) self.incomingPlayer.play().catch()
                 }
             }
-            this.bc.postMessage({ event: "bcNewTab", params: { id: this.id } })
+            this.bc.postMessage({event: "bcNewTab", params: {id: this.id}})
         })
     }
 
@@ -403,7 +396,7 @@ export class Phone extends Component {
         if (this.session) {
             this.session.refer(phoneNumber)
         } else {
-            this.bc.postMessage({ event: "bcTransfer", params: { phoneNumber } })
+            this.bc.postMessage({event: "bcTransfer", params: {phoneNumber}})
         }
         this.state.phone_status = self.status.ended
         await this.endCall()
@@ -422,11 +415,27 @@ export class Phone extends Component {
         if (this.session) {
             this.session.sendDTMF(`${this.attended_transfer_sequence}${phoneNumber}#`)
         }
-        this.bc.postMessage({ event: "bcForward", params: { phoneNumber } })
+        this.bc.postMessage({event: "bcForward", params: {phoneNumber}})
         this.state.isDialingPanel = true
         this.state.isCallForwarded = true
         this.state.isForward = false
         this.state.isContacts = false
+
+        let mask = maskNumber(phoneNumber)
+        const displayNumber = this.isMaskCallNumber ? mask : phoneNumber
+        const partnerIconUrl = model === 'partner' ? this.computePartnerIconUrl(id) : this.computeUserIconUrl(id)
+        if (model !== '' && id !== '') {
+            this.state.xTransferPartner = {
+                partnerName: name,
+                partnerIconUrl: partnerIconUrl,
+                phoneNumber,
+                displayNumber,
+            }
+        } else {
+            this.state.xTransferInfo = {
+                xTransferInfo: displayNumber
+            }
+        }
     }
 
     async prepareCall(props) {
@@ -440,7 +449,7 @@ export class Phone extends Component {
 
     async setCallStatus(status) {
         const currentCallStatus = this.callStatus[status] ? this.callStatus[status] : this.callStatus.Failed
-        this.notify(currentCallStatus.toUpperCase(), { title: 'Phone', sticky: false })
+        this.notify(currentCallStatus.toUpperCase(), {title: 'Phone', sticky: false})
     }
 
     initUserAgent() {
@@ -501,7 +510,7 @@ export class Phone extends Component {
         })
 
         // HANDLE RTCSession
-        self.userAgent.on("newRTCSession", async function ({ session }) {
+        self.userAgent.on("newRTCSession", async function ({session}) {
             if (session.direction === "outgoing") {
                 session.connection.addEventListener("track", (e) => {
                     const remoteAudio = document.createElement('audio')
@@ -517,8 +526,8 @@ export class Phone extends Component {
                 if (self.session === null) {
                     self.session = session
                     self.sipSessions.push(self.id)
-                    const params = { id: self.id, action: 'push' }
-                    self.bc.postMessage({ event: 'bcSipSession', params })
+                    const params = {id: self.id, action: 'push'}
+                    self.bc.postMessage({event: 'bcSipSession', params})
                 } else {
                     session.terminate()
                     self.getCalls()
@@ -533,8 +542,8 @@ export class Phone extends Component {
                     await self.failProcessing(data.cause)
                     const index = self.sipSessions.indexOf(self.id);
                     self.sipSessions.splice(index, 1);
-                    const params = { id: self.id, action: 'pop' }
-                    self.bc.postMessage({ event: 'bcSipSession', params })
+                    const params = {id: self.id, action: 'pop'}
+                    self.bc.postMessage({event: 'bcSipSession', params})
                     self.session = null
                     await self.endCall()
                 })
@@ -565,7 +574,7 @@ export class Phone extends Component {
                     if (self.supressBroadcastChannel) {
                         self.supressBroadcastChannel = false
                     } else {
-                        self.bc.postMessage({ event: "bcEndCall" })
+                        self.bc.postMessage({event: "bcEndCall"})
                     }
                 })
 
@@ -595,6 +604,7 @@ export class Phone extends Component {
                 if (answerMode === 'Auto') {
                     // console.log('Auto Answer', answerMode)
                     self._onClickAcceptIncoming()
+                    self.state.inIncoming = false
                     self.autoAnswerPlayer.play().then()
                     return
                 } else {
@@ -616,11 +626,12 @@ export class Phone extends Component {
                     console.log(e)
                 }
 
+                self.state.isDisplayLastState = self.state.isDisplay
                 if (!self.state.isDisplay) {
                     self.toggleDisplay()
                 }
                 const params = self.getJsonCallData()
-                self.bc.postMessage({ event: "bcStartCall", params })
+                self.bc.postMessage({event: "bcStartCall", params})
 
                 self.state.inIncoming = true
                 self.state.isDialingPanel = true
@@ -643,20 +654,20 @@ export class Phone extends Component {
     }
 
     failNotify(sound, microphone, cause) {
-        console.log({ sound, microphone, cause })
+        console.log({sound, microphone, cause})
         if (sound && microphone) {
-            this.notify(cause, { title: 'Failed', sticky: false, type: 'danger' })
+            this.notify(cause, {title: 'Failed', sticky: false, type: 'danger'})
         } else {
             let message = `${cause}<br/>Check permission for:`
             message += sound ? '' : '<br/>&emsp; - Sound'
             message += microphone ? '' : '<br/>&emsp; - Microphone'
-            this.notification.add(markup(message), { title: 'Phone', sticky: true, type: 'danger' })
+            this.notification.add(message, {title: 'Phone', sticky: true, type: 'danger', message_is_html: true})
         }
     }
 
     async checkMicrophonePermissions() {
         if (this.browser === browser.chrome) {
-            const permissionStatus = await navigator.permissions.query({ name: 'microphone' })
+            const permissionStatus = await navigator.permissions.query({name: 'microphone'})
             if (permissionStatus.state === "granted") {
                 return true
             }
@@ -664,7 +675,7 @@ export class Phone extends Component {
         } else if (this.browser === browser.firefox) {
             console.log(this.browser)
             try {
-                const stream = await navigator.mediaDevices.getUserMedia({ video: false, audio: true })
+                const stream = await navigator.mediaDevices.getUserMedia({video: false, audio: true})
                 stream.getTracks().forEach(function (track) {
                     track.stop()
                 })
@@ -695,7 +706,7 @@ export class Phone extends Component {
         self.startCall()
 
         const syncParams = self.getJsonCallData()
-        self.bc.postMessage({ event: "bcSync", params: syncParams })
+        self.bc.postMessage({event: "bcSync", params: syncParams})
         self.eventHandlers = {
             'connecting': function (data) {
                 // console.log('outgoing -> connecting: ', data)
@@ -714,7 +725,7 @@ export class Phone extends Component {
                 self.state.phone_status = self.status.accepted
                 await self.setCallStatus("Answered")
                 const params = self.getJsonCallData()
-                self.bc.postMessage({ event: "bcAnswerCall", params })
+                self.bc.postMessage({event: "bcAnswerCall", params})
             },
             'ended': async function (data) {
                 // console.log('outgoing -> ended: ', data)
@@ -727,7 +738,7 @@ export class Phone extends Component {
                 if (self.supressBroadcastChannel) {
                     self.supressBroadcastChannel = false
                 } else {
-                    self.bc.postMessage({ event: "bcEndCall" })
+                    self.bc.postMessage({event: "bcEndCall"})
                 }
             },
             'failed': async function (data) {
@@ -743,7 +754,7 @@ export class Phone extends Component {
 
         const options = {
             'eventHandlers': self.eventHandlers,
-            'mediaConstraints': { 'audio': true, 'video': false }
+            'mediaConstraints': {'audio': true, 'video': false}
         }
 
         self.session = self.userAgent.call(`sip:${phoneNumber}`, options)
@@ -757,7 +768,7 @@ export class Phone extends Component {
         this.state.isCalls = false
         this.state.isDisplay = true
         this.state.isKeypad = false
-        this.bus.trigger('busTraySetState', { isDisplay: this.state.isDisplay, inCall: this.state.inCall })
+        this.bus.trigger('busTraySetState', {isDisplay: this.state.isDisplay, inCall: this.state.inCall})
     }
 
     async endCall() {
@@ -778,7 +789,7 @@ export class Phone extends Component {
         this.state.phoneNumber = ''
         this.state.xPhoneInfoDisplay = ''
         this.phoneInput.el.value = this.state.phoneNumber
-        this.bus.trigger('busTraySetState', { isDisplay: this.state.isDisplay, inCall: this.state.inCall })
+        this.bus.trigger('busTraySetState', {isDisplay: this.state.isDisplay, inCall: this.state.inCall})
         this.state.activeTab = this.lastActiveTab
         if (this.lastActiveTab === this.tabs.calls) {
             this.getCalls()
@@ -796,13 +807,15 @@ export class Phone extends Component {
     }
 
     _openPartner(id) {
-        this.action.doAction({
-            res_id: id,
-            res_model: 'res.partner',
-            target: 'current',
-            type: 'ir.actions.act_window',
-            views: [[false, 'form']],
-        })
+        if (id) {
+            this.action.doAction({
+                res_id: id,
+                res_model: 'res.partner',
+                target: 'current',
+                type: 'ir.actions.act_window',
+                views: [[false, 'form']],
+            })
+        }
     }
 
     async searchPartner(phoneNumber) {
@@ -816,7 +829,7 @@ export class Phone extends Component {
             if (pbxUser) {
                 this.state.callerId = this.computeUserData(pbxUser, phoneNumber)
             } else {
-                this.state.callerId = { phoneNumber, displayNumber: phoneNumber }
+                this.state.callerId = {phoneNumber, displayNumber: phoneNumber}
             }
         }
         return partner
@@ -892,12 +905,12 @@ export class Phone extends Component {
                 this.state.isContacts = false
                 this.state.isCalls = false
                 this.state.activeTab = this.tabs.phone
-                this.bus.trigger('busTraySetState', { isDisplay: this.state.isDisplay, inCall: this.state.inCall })
+                this.bus.trigger('busTraySetState', {isDisplay: this.state.isDisplay, inCall: this.state.inCall})
             } else {
                 setFocus(this.phoneInput.el)
             }
         } else {
-            this.notify('Missing configs! Check "User / Preferences"!', { sticky: false })
+            this.notify('Missing configs! Check "User / Preferences"!', {sticky: false})
         }
     }
 
@@ -908,20 +921,20 @@ export class Phone extends Component {
     _onClickMakeCall(ev) {
         if (this.state.phoneNumber) {
             if (!this.sipRegistered) {
-                this.notify('Not registered to the SIP server!', { title: 'Phone', sticky: false })
+                this.notify('Not registered to the SIP server!', {title: 'Phone', sticky: false})
                 return
             }
             this.state.callPhoneNumber = this.state.phoneNumber.replace(/\(|\)|-| /gm, '')
             this.state.phoneNumber = ''
             this.phoneInput.el.value = this.state.phoneNumber
-            this.prepareCall({ phone: this.state.callPhoneNumber })
+            this.prepareCall({phone: this.state.callPhoneNumber})
         } else {
-            this.notify("The phone call has no number!", { sticky: false })
+            this.notify("The phone call has no number!", {sticky: false})
         }
     }
 
     _onClickContactCall(phoneNumber) {
-        this.prepareCall({ phone: phoneNumber })
+        this.prepareCall({phone: phoneNumber})
     }
 
     _onClickPhone(ev) {
@@ -1001,7 +1014,7 @@ export class Phone extends Component {
         this.state.isDialingPanel = false
         this.state.isContacts = true
         this.state.isTransfer = true
-        this.bus.trigger('busContactSetState', { isTransfer: true })
+        this.bus.trigger('busContactSetState', {isTransfer: true})
     }
 
     _onClickForward(ev) {
@@ -1011,7 +1024,7 @@ export class Phone extends Component {
         this.state.isDialingPanel = false
         this.state.isForward = true
         this.state.isContacts = true
-        this.bus.trigger('busContactSetState', { isForward: true, isContactMode: true })
+        this.bus.trigger('busContactSetState', {isForward: true, isContactMode: true})
     }
 
     _onClickMicrophoneMute(ev) {
@@ -1023,13 +1036,13 @@ export class Phone extends Component {
             }
         }
         this.state.isMicrophoneMute = !this.state.isMicrophoneMute
-        this.bc.postMessage({ event: "bcMicrophoneMute", params: { mute: this.state.isMicrophoneMute } })
+        this.bc.postMessage({event: "bcMicrophoneMute", params: {mute: this.state.isMicrophoneMute}})
     }
 
     _onClickSoundMute(ev) {
         this.state.isSoundMute = !this.state.isSoundMute
         localStorage.setItem('asterisk_plus_phone_is_sound_mute', `${this.state.isSoundMute}`)
-        this.bc.postMessage({ event: "bcSoundMute", params: { mute: this.state.isSoundMute } })
+        this.bc.postMessage({event: "bcSoundMute", params: {mute: this.state.isSoundMute}})
         this.setIncomingVolume()
     }
 
@@ -1039,7 +1052,7 @@ export class Phone extends Component {
             this.supressBroadcastChannel = true
             this.session.terminate()
         }
-        this.bc.postMessage({ event: "bcEndCall" })
+        this.bc.postMessage({event: "bcEndCall"})
         this.state.phone_status = this.status.ended
         await this.endCall()
         if (this.lastActiveTab === this.tabs.phone) {
@@ -1052,7 +1065,7 @@ export class Phone extends Component {
             this.session.answer()
         }
         const params = this.getJsonCallData()
-        this.bc.postMessage({ event: "bcAnswerCall", params })
+        this.bc.postMessage({event: "bcAnswerCall", params})
         this.state.phone_status = this.status.accepted
         this.state.inIncoming = false
         this.startCall()
@@ -1063,7 +1076,7 @@ export class Phone extends Component {
             this.supressBroadcastChannel = true
             this.session.terminate()
         }
-        this.bc.postMessage({ event: "bcEndCall" })
+        this.bc.postMessage({event: "bcEndCall"})
         this.state.inIncoming = false
         await this.endCall()
         if (this.lastActiveTab === this.tabs.phone) {
@@ -1081,7 +1094,7 @@ export class Phone extends Component {
             if (this.session) {
                 this.sendDTMF(ev.target.textContent)
             } else {
-                this.bc.postMessage({ event: "bcDtmf", params: { key: ev.target.textContent } })
+                this.bc.postMessage({event: "bcDtmf", params: {key: ev.target.textContent}})
             }
         } else {
             this.state.phoneNumber += ev.target.textContent
@@ -1095,7 +1108,7 @@ export class Phone extends Component {
         this.state.phoneNumber = this.state.phoneNumber.slice(0, -1)
         this.phoneInput.el.value = this.state.phoneNumber
         if (this.state.isContactList) {
-            this.bus.trigger('busContactSearchQuery', { searchQuery: this.phoneInput.el.value })
+            this.bus.trigger('busContactSearchQuery', {searchQuery: this.phoneInput.el.value})
         }
         if (this.state.phoneNumber === '') this.state.isContactList = false
     }
@@ -1109,19 +1122,22 @@ export class Phone extends Component {
     }
 
     _onEnterPhoneNumber(ev) {
-        if (this.state.inCall) {
-            this.sendDTMF(ev.key)
-        } else {
-            if (ev.key === "Enter") {
-                this._onClickMakeCall()
+        const self = this
+        clearTimeout(this.enterPhoneNumberTimer)
+        self.enterPhoneNumberTimer = setTimeout(() => {
+            if (self.state.inCall) {
+                self.sendDTMF(ev.key)
             } else {
-                // this.phoneInput.el.value = this.phoneInput.el.value.replace(/\(|\)|-| /gm, '')
-                this.state.phoneNumber = this.phoneInput.el.value
-                this.state.isContactList = this.state.phoneNumber !== ''
-                this.bus.trigger('busContactSetState', { isContact: true })
-                this.bus.trigger('busContactSearchQuery', { searchQuery: this.phoneInput.el.value })
+                if (ev.key === "Enter") {
+                    self._onClickMakeCall()
+                } else {
+                    self.state.phoneNumber = self.phoneInput.el.value
+                    self.state.isContactList = self.state.phoneNumber !== ''
+                    self.bus.trigger('busContactSetState', {isContact: true})
+                    self.bus.trigger('busContactSearchQuery', {searchQuery: self.phoneInput.el.value})
+                }
             }
-        }
+        }, 400)
     }
 
     _createPartner() {
@@ -1144,6 +1160,6 @@ export class Phone extends Component {
         if (this.session) {
             this.session.sendDTMF(this.disconnect_call_sequence)
         }
-        this.bc.postMessage({ event: "bcCancelForward" })
+        this.bc.postMessage({event: "bcCancelForward"})
     }
 }

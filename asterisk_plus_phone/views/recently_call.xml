@@ -4,7 +4,7 @@
         <record id="asterisk_plus_phone_recently_call" model="ir.actions.act_window">
             <field name="name">Recently Calls</field>
             <field name="res_model">asterisk_plus_phone.recently_call</field>
-            <field name="view_mode">list,form</field>
+            <field name="view_mode">tree,form</field>
         </record>
 
         <menuitem id="asterisk_plus_phone_recently_call_menu"
@@ -18,7 +18,7 @@
             <field name="name">asterisk_plus_phone_recently_call_list</field>
             <field name="model">asterisk_plus_phone.recently_call</field>
             <field name="arch" type="xml">
-                <list>
+                <tree>
                     <field name="calling_number"/>
                     <field name="called_number"/>
                     <field name="calling_user"/>
@@ -26,7 +26,7 @@
                     <field name="partner"/>
                     <field name="last_call_date"/>
                     <field name="calls"/>
-                </list>
+                </tree>
             </field>
         </record>
 
@@ -47,14 +47,14 @@
                         </group>
                         <h3>Calls</h3>
                         <field name="calls">
-                            <list>
+                            <tree>
                                 <field name="id"/>
                                 <field name="calling_number"/>
                                 <field name="called_number"/>
                                 <field name="calling_user"/>
                                 <field name="answered_user"/>
                                 <field name="direction_icon"/>
-                            </list>
+                            </tree>
                         </field>
                     </sheet>
                 </form>

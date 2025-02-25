@@ -30,7 +30,7 @@
             <!--Keypad-->
             <div t-attf-class="{{state.isKeypad ? '' : 'o_hide'}} o_body_phone">
                 <div class="o_phone_number_content">
-                    <input id="phoneInput" class="o_phone_number_input" type="tel" t-ref="phone-input" t-on-keyup="debounceEnterPhoneNumber" placeholder="Enter name or number" autocomplete="off"/>
+                    <input id="phoneInput" class="o_phone_number_input" type="tel" t-ref="phone-input" t-on-keyup="_onEnterPhoneNumber" placeholder="Enter name or number" autocomplete="off"/>
                     <div aria-label="Backspace" class="fa fa-long-arrow-left o_phone_number_back" role="img" title="Backspace" t-on-click="_onClickBackSpace"/>
                 </div>
                 <div class="o_keypad" t-if="!state.isContactList">
@@ -52,11 +52,11 @@
             <div t-attf-class="{{ state.isDialingPanel ? '' : 'o_hide' }} o_body_phone">
                 <div class="o_phone_call_details flex-column">
                     <t t-if="state.isPartner">
-                        <div class="o_partner_link" t-on-click="() => this._openPartner(state.callerId.partnerId)">
+                        <div class="o_partner_link" t-on-click="_openPartner(state.callerId.partnerId)">
                             <img alt="Avatar" class="o_partner_avatar" t-if="state.callerId.partnerId" t-att-src="state.callerId.partnerIconUrl"/>
                             <span class="o_partner_name"><t t-esc="state.callerId.partnerName"/></span>
                             <span class="o_partner_name"><t t-esc="state.callerId.displayNumber"/></span>
-                            <span class="o_partner_name"><t t-out="state.callDurationTime"/></span>
+                            <span class="o_partner_name"><t t-raw="state.callDurationTime"/></span>
                         </div>
                         <div t-if="state.isCallForwarded" class="text-center mt-1" title="Cancel Forward">
                             <button class="btn p-3 border rounded-circle" t-on-click="_cancelForward">
@@ -68,7 +68,7 @@
                         <img t-if="state.callerId.partnerId" alt="Avatar" class="o_partner_avatar" t-att-src="state.callerId.partnerIconUrl"/>
                         <span t-if="state.callerId.partnerId" class="o_partner_name"><t t-esc="state.callerId.partnerName"/></span>
                         <span class="o_partner_name"><t t-esc="state.callerId.displayNumber"/></span>
-                        <span class="o_partner_name"><t t-out="state.callDurationTime"/></span>
+                        <span class="o_partner_name"><t t-raw="state.callDurationTime"/></span>
                         <div class="text-center" title="Customer">
                             <button class="btn p-3 border rounded-circle" t-on-click="_createPartner">
                                 <i aria-label="Customer" class="fa fa-fw fa-lg fa-user"/>
@@ -80,9 +80,9 @@
                             </button>
                         </div>
                     </t>
-                    <div t-if="state.xTransferPartner" class="o_partner_link" t-on-click="() => this._openPartner(state.xTransferPartner.partnerId)">
+                    <div t-if="state.xTransferPartner" class="o_partner_link" t-on-click="_openPartner(state.xTransferPartner.partnerId)">
                         <span class="o_partner_name"><i class="fa fa-arrow-down"/></span>
-                        <img alt="Avatar" class="o_partner_avatar" t-if="state.xTransferPartner.partnerId" t-att-src="state.xTransferPartner.partnerIconUrl"/>
+                        <img alt="Avatar" class="o_partner_avatar" t-if="state.xTransferPartner.partnerIconUrl" t-att-src="state.xTransferPartner.partnerIconUrl"/>
                         <span class="o_partner_name"><t t-esc="state.xTransferPartner.partnerName"/></span>
                         <span class="o_partner_name"><t t-esc="state.xTransferPartner.displayNumber"/></span>
                     </div>
@@ -98,7 +98,7 @@
             </div>
             <!--Favorites-->
             <div t-attf-class="{{ state.isFavorites ? '' : 'o_hide' }} o_body_phone">
-                <Favorites t-if="state.isFavorites" bus="bus"/>
+                <Favorites t-if="state.isFavorites" phone_configs="phone_configs" bus="bus"/>
             </div>
             <!--Calls-->
             <div t-attf-class="{{ state.isCalls ? '' : 'o_hide' }} o_body_phone">

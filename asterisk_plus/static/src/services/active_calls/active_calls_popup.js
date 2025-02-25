@@ -1,13 +1,11 @@
 /** @odoo-module **/
 import {useService} from "@web/core/utils/hooks"
 
-import {Component, useState} from "@odoo/owl"
+const {Component} = owl
+const {useState} = owl.hooks
 
 export class ActiveCallsPopup extends Component {
     static template = 'asterisk_plus.active_calls_popup'
-    static props = {
-        bus: Object,
-    }
 
     constructor() {
         super(...arguments)
@@ -22,7 +20,7 @@ export class ActiveCallsPopup extends Component {
         super.setup()
         this.orm = useService('orm')
         this.action = useService('action')
-        this.props.bus.addEventListener('active_calls_toggle_display', (ev) => this.toggleDisplay(ev))
+        this.props.bus.on('active_calls_toggle_display', this, this.toggleDisplay)
     }
 
     async getCalls() {

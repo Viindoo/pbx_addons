@@ -2,14 +2,12 @@
 "use strict"
 import {useService} from "@web/core/utils/hooks"
 import {setFocus} from "@asterisk_plus_phone/js/utils"
-import {Component, useState, onMounted, onWillStart, useRef} from "@odoo/owl"
-import {loadJS} from "@web/core/assets"
+const {Component, useState} = owl
+const {onMounted, onWillStart, useRef} = owl.hooks
+const {loadJS} = owl.utils
 
 export class PhoneSysTray extends Component {
     static template = 'asterisk_plus_phone.menu'
-    static props = {
-        bus: Object,
-    }
 
     constructor() {
         super(...arguments)
@@ -31,7 +29,7 @@ export class PhoneSysTray extends Component {
         this.orm = useService("orm")
 
         onMounted(() => {
-            this.bus.addEventListener('busTraySetState', ({detail: {isDisplay, inCall}}) => {
+            this.bus.on('busTraySetState', this, function ({isDisplay, inCall}) {
                 this.state.isDisplay = isDisplay
                 this.state.inCall = inCall
             })

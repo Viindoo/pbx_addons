@@ -1,17 +1,14 @@
 /** @odoo-module **/
 
 import {useService} from "@web/core/utils/hooks"
-import {Component, useState, onWillStart} from "@odoo/owl"
-import {session} from "@web/session"
+import {uid} from "web.session"
 import {maskNumber} from "@asterisk_plus_phone/js/utils"
 
-const uid = session.uid
+const {Component, useState} = owl
+const {onWillStart} = owl.hooks
 
 export class Favorites extends Component {
     static template = 'asterisk_plus_phone.favorites'
-    static props = {
-        bus: Object,
-    }
 
     constructor() {
         super(...arguments)

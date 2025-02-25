@@ -5,11 +5,10 @@
   margin: 0 auto;
   width: 70vw;
   position: absolute;
-  top: 47px;
+  top: 49px;
   background: white;
   border: 1px solid $o-brand-odoo;
-  border-radius: 5px;
-  z-index: 10;
+  border-radius: 2px;
 
   .row {
     margin-right: 0;
@@ -25,12 +24,12 @@
       color: white;
     }
 
-    tr:hover {
-      cursor: pointer;
-    }
-
     td {
       text-align: center;
+
+      .hangup-button:hover {
+        cursor: pointer;
+      }
     }
   }
 

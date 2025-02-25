@@ -428,8 +428,12 @@ class Call(models.Model):
             if obj:
                 try:
                     is_missed_call = self.direction == 'in' and self.status != 'answered'
-                    mt_note = self.env.ref('mail.mt_note').id
-                    mt_comment = self.env.ref('mail.mt_comment').id
+                    if release.version_info[0] > 16:
+                        mt_note = self.env.ref('mail.mt_note').id
+                        mt_comment = self.env.ref('mail.mt_comment').id
+                    else:
+                        mt_note = self.env['ir.model.data']._xmlid_to_res_id('mail.mt_note')
+                        mt_comment = self.env['ir.model.data']._xmlid_to_res_id('mail.mt_comment')
                     if is_missed_call:
                         kwargs['subtype_id'] = mt_comment
                         #kwargs['message_type'] = 'comment'

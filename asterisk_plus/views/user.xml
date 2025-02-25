@@ -28,14 +28,14 @@
     <field name="name">asterisk_plus.user.list</field>
     <field name="model">asterisk_plus.user</field>
     <field name="arch" type="xml">
-      <list>
+      <tree>
         <button name="dial_user" icon="fa-phone" type="object" string=" "/>
         <field name="exten"/>
         <field name="user"/>
         <field name="phone"/>
         <field name="channels" widget="many2many_tags"/>
         <field name="user_call_count"/>
-      </list>
+      </tree>
     </field>
   </record>
 
@@ -51,8 +51,8 @@
         <sheet>
           <div class="oe_button_box" name="button_box">
             <field name="active" invisible="1"/>
-            <widget name="web_ribbon" title="Archived" bg_color="text-bg-danger"
-                    invisible="active"/>
+            <widget name="web_ribbon" title="Archived" bg_color="bg-danger"
+                    attrs="{'invisible': [('active', '=', True)]}"/>
             <button class="oe_stat_button" icon="fa-phone"
                     name="action_view_calls" type="object">
                 <field name="user_call_count" widget="statinfo"/>
@@ -84,20 +84,20 @@
                   <span>Channels</span>
                 </div>
                 <div class="p-2">
-                  <field name="channels" select="0" mode="list"
-                      domain="[('asterisk_user', '=', id)]"
-                      context="{'default_asterisk_user': id}">
-                    <list name="channels" editable="bottom">
+                  <field name="channels" select="0" mode="tree"
+                    domain="[('asterisk_user', '=', active_id)]"
+                    context="{'default_asterisk_user': active_id}">
+                    <tree name="channels" editable="bottom">
                       <field name="sequence" widget="handle"/>
                       <field name="name" placeholder="PJSIP/101"/>
                       <field name="sip_password" groups="asterisk_plus.group_asterisk_admin"
-                             column_invisible="parent.generate_sip_peers == False"/>
+                             attrs="{'column_invisible': [('parent.generate_sip_peers', '=', False)]}"/>
                       <field name="sip_transport"
-                             column_invisible="parent.generate_sip_peers == False"/>
+                             attrs="{'column_invisible': [('parent.generate_sip_peers', '=', False)]}"/>
                       <field name="originate_context" groups="asterisk_plus.group_asterisk_admin"/>
                       <field name="originate_enabled" widget="boolean_toggle"/>
                       <field name="auto_answer_header"/>
-                    </list>
+                    </tree>
                     <form>
                       <sheet>
                         <group>
@@ -143,7 +143,10 @@
             </page>
           </notebook>
         </sheet>
-        <chatter/>
+        <div class="oe_chatter">
+          <field name="message_follower_ids" widget="mail_followers"/>
+          <field name="message_ids" widget="mail_thread"/>
+        </div>
       </form>
     </field>
   </record>

@@ -2,16 +2,16 @@
 <templates xml:space="preserve">
 
     <div t-name="asterisk_plus_phone.menu" owl="1">
-        <button type="button" t-attf-class="o-dropdown dropdown-toggle dropdown toggle-phone {{state.inCall ? 'busy' : 'available'}}" tabindex="0" aria-expanded="false" title="Toggle Phone" t-on-click="_onClick" t-on-contextmenu="_onContextmenu">
-            <i aria-label="Toggle Phone" class="fa fa-lg icon-call" role="img"/>
-        </button>
+        <a data-hotkey="p" href="#" class="toggle-phone" title="Toggle Phone" t-on-click="_onClick" t-on-contextmenu="_onContextmenu">
+            <i aria-label="Toggle Phone" class="icon-call fa-fw" role="img"/>
+        </a>
 
-        <button t-if="!state.isDisplay and state.inCall" class="hang-up-popup" title="HangUp" t-on-click="_onClickHangUp">
-            <i aria-label="HangUp" class="icon-call_end reject-call"/>
-        </button>
+        <a t-if="!state.isDisplay and state.inCall" aria-label="HangUp" class="hang-up-popup" title="HangUp" t-on-click="_onClickHangUp">
+            <i class="icon-call_end reject-call"/>
+        </a>
 
         <div id="rMenu" t-ref="rMenu" t-attf-class="rmenu d-flex flex-column{{state.isContextMenu ? '' : ' hide'}}" tabindex="-1">
-            <div class="d-flex flex-row">
+            <div>
                 <span t-on-click="_onClickBugReport">Bug Report</span>
             </div>
         </div>

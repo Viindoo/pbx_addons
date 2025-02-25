@@ -4,7 +4,7 @@
     <t t-name="asterisk_plus_phone.contacts" owl="1">
         <div>
             <div t-attf-class="{{ state.isContactMode ? '' : 'o_hide' }} o_phone_number_content">
-                <input id="contactInput" class="o_phone_number_input" placeholder="Enter name or number" t-ref="contact-input" t-on-keyup="debounceSearchContact" autocomplete="off"/>
+                <input id="contactInput" class="o_phone_number_input" placeholder="Enter name or number" t-ref="contact-input" t-on-keyup="_onSearchContact" autocomplete="off"/>
                 <div aria-label="Clear" class="fa fa-times-circle o_phone_number_back" role="img" title="Clear" t-on-click="_onClickClearSearchContact"/>
             </div>
             <div class="o_dial_contact_list">
@@ -32,7 +32,7 @@
                                         <button t-if="isContact" t-attf-title="Call to {{user.exten}}" t-on-click="() => this._onClickMakeCall(user.exten)">
                                             <i class="fa icon-dialer_sip"/>
                                         </button>
-                                        <button t-if="isForward" t-attf-title="Forward to {{user.exten}}" t-on-click="() => this._onClickMakeForward(user.exten)">
+                                        <button t-if="isForward" t-attf-title="Forward to {{user.exten}}" t-on-click="() => this._onClickMakeForward(user.exten, 'user', user.user[0], user.name)">
                                             <i class="fa icon-dialer_sip"/>
                                         </button>
                                     </div>
@@ -67,7 +67,7 @@
                                             <button t-if="isContact" t-attf-title="Call to {{partner.displayPhoneNumber}}" t-on-click="() => this._onClickMakeCall(partner.phone_normalized)">
                                                 <i class="fa icon-phone"/>
                                             </button>
-                                            <button t-if="isForward" t-attf-title="Forward to {{partner.displayPhoneNumber}}" t-on-click="() => this._onClickMakeForward(partner.phone_normalized)">
+                                            <button t-if="isForward" t-attf-title="Forward to {{partner.displayPhoneNumber}}" t-on-click="() => this._onClickMakeForward(partner.phone_normalized, 'partner', partner.id, partner.name)">
                                                 <i class="fa icon-phone"/>
                                             </button>
                                         </t>
@@ -79,7 +79,7 @@
                                         <button t-if="isContact" t-attf-title="Call to {{partner.displayMobileNumber}}" t-on-click="() => this._onClickMakeCall(partner.mobile_normalized)">
                                             <i class="fa fa-mobile"/>
                                         </button>
-                                        <button t-if="isForward" t-attf-title="Forward to {{partner.displayMobileNumber}}" t-on-click="() => this._onClickMakeForward(partner.mobile_normalized)">
+                                        <button t-if="isForward" t-attf-title="Forward to {{partner.displayMobileNumber}}" t-on-click="() => this._onClickMakeForward(partner.mobile_normalized, 'partner', partner.id, partner.name)">
                                             <i class="fa fa-mobile"/>
                                         </button>
                                     </t>
