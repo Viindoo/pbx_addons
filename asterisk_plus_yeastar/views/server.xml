@@ -8,7 +8,7 @@
       <button name="get_system_information" position="after">
         <button name="yeastar_sync_users" type="object" icon="fa-send" string="Sync Users"/>
       </button>
-      <page name="settings" position="after">
+      <page name="localization" position="before">
         <page name="yeastar" string="Yeastar">
           <group>            
             <group>
