@@ -3,7 +3,7 @@
 {
     'name': 'Asterisk Plus',
     'live_test_url': 'https://pbx-demo-15.oduist.com/',
-    'version': '4.0',
+    'version': '4.0,1',
     'author': 'Oduist',
     'price': 0,
     'currency': 'EUR',
