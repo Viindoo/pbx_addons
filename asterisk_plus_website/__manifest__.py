@@ -4,7 +4,7 @@
     "description": """Let's talk. One click call using WebRTC and SIP""",
     "currency": "EUR",
     "price": "100",
-    "version": "1.0",
+    "version": "1.0.1",
     "category": "Website/Website",
     'author': 'Oduist',
     'license': 'Other proprietary',
