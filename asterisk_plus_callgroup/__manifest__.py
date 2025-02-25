@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 {
     'name': "Asterisk Plus Call Group",
-    'live_test_url': 'https://pbx-demo-18.oduist.com/',
+    'live_test_url': 'https://pbx-demo-15.oduist.com/',
     'description': """Ring group configuration added""",
     'currency': 'EUR',
     'price': '0',

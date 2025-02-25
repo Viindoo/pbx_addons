@@ -2,8 +2,8 @@
 import {registry} from "@web/core/registry"
 import {ActiveCallsTray} from "./active_calls_tray"
 import {ActiveCallsPopup} from "./active_calls_popup"
-import {EventBus} from "@odoo/owl"
 
+const {EventBus} = owl
 
 export const ActiveCallsService = {
     async start(env, {}) {

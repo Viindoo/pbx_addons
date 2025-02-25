@@ -1,31 +1,46 @@
 /** @odoo-module **/
 
-import { registry } from "@web/core/registry"
-import { routerBus } from "@web/core/browser/router"
-import { user } from "@web/core/user"
+import {registry} from "@web/core/registry"
+import {uid} from "web.session"
+const {markup} = owl
 
-const { markup } = owl
-
-var personal_channel = 'asterisk_plus_actions_' + user.userId
+var personal_channel = 'asterisk_plus_actions_' + uid
 var common_channel = 'asterisk_plus_actions'
 
 export const pbxActionService = {
     dependencies: ["action", "notification", 'bus_service'],
 
-    start(env, { action, notification, bus_service }) {
+    start(env, {action, notification, bus_service}) {
+        this.bus = env.bus
         this.action = action
         this.notification = notification
 
         bus_service.addChannel(personal_channel)
         bus_service.addChannel(common_channel)
+        bus_service.addEventListener('notification', (action) => this.on_asterisk_plus_action(action))
+    },
 
-        bus_service.subscribe("asterisk_plus_notify", (action) => this.asterisk_plus_handle_notify(action))
-        bus_service.subscribe("open_record", (action) => this.asterisk_plus_handle_open_record(action))
-        bus_service.subscribe("reload_view", (action) => this.asterisk_plus_handle_reload_view(action))
+    on_asterisk_plus_action: function (action) {
+        for (var i = 0; i < action.detail.length; i++) {
+            try {
+                var {type, payload} = action.detail[i]
+                if (typeof payload === 'string')
+                    payload = JSON.parse(payload)
+                if (type === 'asterisk_plus_notify')
+                    this.asterisk_plus_handle_notify(payload);
+                else if (type === 'open_record')
+                    this.asterisk_plus_handle_open_record(payload)
+                else if (type === 'reload_view')
+                    this.asterisk_plus_handle_reload_view(payload)
+            } catch (e) {
+                console.log(e)
+            }
+        }
     },
 
     asterisk_plus_handle_open_record: function (message) {
         // console.log('Opening record form')
+        if (!this.action.currentController) return
         let action = this.action.currentController.action
         if (action.res_model === 'asterisk_plus.call') {
             this.action.doAction({
@@ -34,7 +49,7 @@ export const pbxActionService = {
                 'target': 'current',
                 'res_id': message.res_id,
                 'views': [[message.view_id, 'form']],
-                'view_mode': 'list,form',
+                'view_mode': 'tree,form',
             })
         }
     },
@@ -42,15 +57,15 @@ export const pbxActionService = {
     asterisk_plus_handle_reload_view: function (message) {
         const action = this.action.currentController.action
         if (action.res_model === message.model) {
-            routerBus.trigger("ROUTE_CHANGE")
+            this.bus.trigger("ROUTE_CHANGE")
         }
     },
 
-    asterisk_plus_handle_notify: function ({ title, message, sticky, warning }) {
+    asterisk_plus_handle_notify: function ({title, message, sticky, warning}) {
         if (warning === true)
-            this.notification.add(markup(message), { title, sticky, type: 'danger' })
+            this.notification.add(markup(message), {title, sticky, type: 'danger'})
         else
-            this.notification.add(markup(message), { title, sticky, type: 'warning' })
+            this.notification.add(markup(message), {title, sticky, type: 'warning'})
     },
 }
 

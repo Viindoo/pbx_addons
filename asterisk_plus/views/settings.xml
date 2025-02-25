@@ -22,7 +22,7 @@
             <sheet>
               <notebook>
                 <page name="general" string="General"
-                      invisible="is_registered == False">
+                      attrs="{'invisible': [('is_registered', '=', False)]}">
                   <group>
                     <group>
                       <field name="module_version"/>
@@ -43,7 +43,7 @@
                   </group>
                 </page>
                 <page name="calls" string="Calls"
-                      invisible="is_registered == False">
+                      attrs="{'invisible': [('is_registered', '=', False)]}">
                   <group>
                       <group string="Call Options" name="options">
                         <field name="auto_create_partners"/>
@@ -55,69 +55,69 @@
                         <field name="record_calls"/>
                         <field name="recordings_access"/>
                         <field name="recordings_access_url"
-                               invisible="recordings_access not in ['remote', 'asterisk_http']"
-                               required="recordings_access in ['remote', 'asterisk_http']"/>
+                               attrs="{'invisible': [('recordings_access', 'not in', ['remote','asterisk_http'])],
+                                       'required': [('recordings_access', 'in', ['remote', 'asterisk_http'])]}"/>
                         <!-- S3 -->
                         <field name="recordings_s3_region" placeholder="eu-central-1"
-                               invisible="recordings_access != 's3'"
-                               required="recordings_access == 's3'"/>
+                               attrs="{'invisible': [('recordings_access', '!=', 's3')],
+                                       'required': [('recordings_access', '=', 's3')]}"/>
                         <field name="recordings_s3_bucket" placeholder="testbucket"
-                               invisible="recordings_access != 's3'"
-                               required="recordings_access == 's3'"/>
+                               attrs="{'invisible': [('recordings_access', '!=', 's3')],
+                                       'required': [('recordings_access', '=', 's3')]}"/>
                         <field name="recordings_s3_key" password="1"
-                               invisible="recordings_access != 's3'"
-                               required="recordings_access == 's3'"/>
+                               attrs="{'invisible': [('recordings_access', '!=', 's3')],
+                                       'required': [('recordings_access', '=', 's3')]}"/>
                         <field name="recordings_s3_secret" password="1"
-                               invisible="recordings_access != 's3'"
-                               required="recordings_access == 's3'"/>
+                               attrs="{'invisible': [('recordings_access', '!=', 's3')],
+                                       'required': [('recordings_access', '=', 's3')]}"/>
                         <!-- End of S3 -->
                         <field name="recordings_keep_days"/>
                         <field name="use_mp3_encoder"
-                               invisible="record_calls == False"/>
+                               attrs="{'invisible': [('record_calls', '=', False)]}"/>
                         <field name="mp3_encoder_bitrate"
-                               invisible="record_calls == False or use_mp3_encoder == False" required="use_mp3_encoder == True"/>
+                               attrs="{'invisible': ['|',('record_calls', '=', False), ('use_mp3_encoder','=',False)], 'required': [('use_mp3_encoder','=',True)]}"/>
                         <field name="mp3_encoder_quality"
-                               invisible="record_calls == False or use_mp3_encoder == False" required="use_mp3_encoder == True"/>
+                               attrs="{'invisible': ['|',('record_calls', '=', False), ('use_mp3_encoder','=',False)], 'required': [('use_mp3_encoder','=',True)]}"/>
                         <label for="recording_storage" string="Recording Storage"
-                               invisible="record_calls == False or recordings_access not in ['local','remote']"/>
+                               attrs="{'invisible': ['|',('record_calls', '=', False),('recordings_access', 'not in', ['local','remote'])]}"/>
                           <div class="d-flex">
                             <field name="recording_storage" class="w-50"
-                                   invisible="record_calls == False or recordings_access not in ['local','remote']" />
+                                   attrs="{'invisible': ['|',('record_calls', '=', False),('recordings_access', 'not in', ['local','remote'])]}" />
                             <button type="object" name="sync_recording_storage" string="Move storage" icon="fa-refresh" help="Use this button after changing the storage type."
-                                    invisible="record_calls == False or recordings_access not in ['local','remote']"/>
+                                    attrs="{'invisible': ['|',('record_calls', '=', False),('recordings_access', 'not in', ['local','remote'])]}"/>
                           </div>
                       </group>
                     </group>
                 </page>
                 <page name="transcription" string="Transcription"
-                      invisible="record_calls == False or is_registered == False">
+                      attrs="{'invisible': ['|',('record_calls', '=', False),('is_registered', '=', False)]}">
                   <group>
                     <group>
                       <field name="transcribe_calls"/>
                       <field name="openai_api_key_display" password="1"
-                        invisible="transcribe_calls == False"/>
+                             attrs="{'invisible': [('transcribe_calls', '=', False)]}"/>
                       <field name="summary_prompt"/>
                       <field name="completion_model"/>
                       <field name="register_summary"
-                             invisible="transcribe_calls == False"/>
+                             attrs="{'invisible': [('transcribe_calls', '=', False)]}"/>
                       <field name="remove_recording_after_transcript"
-                             invisible="transcribe_calls == False"/>
+                             attrs="{'invisible': [('transcribe_calls', '=', False)]}"/>
                     </group>
                     <group string="Transcription Rules"
-                           invisible="transcribe_calls == False">
+                           attrs="{'invisible': [('transcribe_calls', '=', False)]}">
                       <field name="transcription_rules">
-                        <list editable="bottom">
+                        <tree editable="bottom">
                           <field name="id"/>
                           <field name="calling_number"/>
                           <field name="called_number"/>
-                        </list>
+                        </tree>
                       </field>
                     </group>
                   </group>
                 </page>
                 <!-- REGISTRATION PAGE -->
                 <page name="registraton" string="Registration">
-                <group invisible="is_registered">
+                <group  attrs="{'invisible': [('is_registered', '=', True)]}">
                   <div colspan="2" style="font-size: small;">
                     <strong >Registration is required to activate and use this product. We use it only for internal sales and support processes. Please read our <a target="_new" href="https://oduist.com/privacy">data privacy policy.</a></strong>
                   </div>
@@ -138,16 +138,15 @@
                         <group name="registration" string="Registration">
                             <field name="show_partner_code" invisible="1"/>
                             <field colspan="2" name="partner_code" placeholder="Enter your Partner code if you have it or leave empty."
-                              invisible="show_partner_code == False"
-                              readonly="is_registered == True"/>
+                                   attrs="{'invisible': [('show_partner_code', '=', False)],
+                                           'readonly': [('is_registered', '=', True)]}"/>
                             <button colspan="2" name="register_instance" class="btn btn-info btn-lg me-1" type="object" string="SUBMIT REGISTRATION"
-                              invisible="is_registered or not i_agree_to_register or not i_agree_to_receive or not i_agree_to_contact"/>
+                                    attrs="{'invisible': ['|', '|', '|', ('is_registered', '=', True), ('i_agree_to_register', '=', False), ('i_agree_to_receive', '=', False), ('i_agree_to_contact', '=', False)]}"/>
                             <field name="is_registered" invisible="1"/>
-                            <button colspan="2" name="unregister_instance" class="btn btn-lg btn-danger me-1"
-                              type="object" string="DELETE REGISTRATION"
-                                invisible="is_registered != True"/>
+                            <button colspan="2" name="unregister_instance" class="btn btn-lg btn-danger me-1" type="object" string="DELETE REGISTRATION"
+                                    attrs="{'invisible': [('is_registered', '=', False)]}"/>
                             <p colspan="2"
-                                invisible="is_registered or (i_agree_to_register and i_agree_to_receive and i_agree_to_contact)">
+                               attrs="{'invisible': [('i_agree_to_register', '=', True), ('i_agree_to_receive', '=', True), '|', ('i_agree_to_contact', '=', True), ('is_registered', '=', True),]}">
                               Our product is <b>open source and free to use</b>, but it's <b>also a commercial solution used in business-critical environments</b>.<br/>
                               While we're committed to keeping the product open source, <b>we need sustainable ways to support its development and maintenance</b>.<br/>
                               We want to share why we ask for these permissions:
@@ -161,7 +160,7 @@
                               <strong>Thanks a lot for your trust, understanding and support! Welcome to our community!</strong>
                             </p>
                         </group>
-                        <group string="Technical Support" invisible="not is_registered">
+                        <group string="Technical Support" attrs="{'invisible': [('is_registered', '=', False)]}">
                             <p colspan="2" >
                               <a role="button" class="btn btn-primary" href="https://oduist.com/knowledge/article/39" target="_new">DOCUMENTATION</a> |
                               <a role="button" class="btn btn-info" href="https://oduist.com/forum/user-support-portal-1" target="_new">FREE SUPPORT</a> |
@@ -169,7 +168,7 @@
                             </p>
                             <img alt="Great support!" colspan="2" src="/asterisk_plus/static/description/support.jpg" width="100%"/>
                         </group>
-                        <group name="registration_data" string="Registration Data" invisible="is_registered">
+                        <group name="registration_data" string="Registration Data" attrs="{'invisible': [('is_registered', '=', True)]}">
                             <field name="company_name"/>
                             <field name="company_email"/>
                             <field name="company_phone"/>
