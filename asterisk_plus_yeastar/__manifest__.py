@@ -3,7 +3,7 @@
 {
     'name': 'Asterisk Plus Yeastar',
     'live_test_url': 'https://pbx-demo-18.oduist.com/',
-    'version': '1.0',
+    'version': '1.0.1',
     'author': 'Oduist',
     'price': 0,
     'currency': 'EUR',

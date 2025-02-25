@@ -5,7 +5,7 @@
     'description': """Ring group configuration added""",
     'currency': 'EUR',
     'price': '0',
-    'version': '1.2',
+    'version': '1.2.1',
     'category': 'Phone',
     'author': 'Oduist',
     'license': 'Other proprietary',
