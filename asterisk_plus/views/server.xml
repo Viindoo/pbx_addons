@@ -63,10 +63,10 @@
                     </group>
                     <group>
                       <field name="agent_options">
-                        <list editable="bottom">
+                        <tree editable="bottom">
                           <field name="key"/>
                           <field name="value"/>
-                        </list>
+                        </tree>
                       </field>
                     </group>
                   </page>

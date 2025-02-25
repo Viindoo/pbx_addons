@@ -106,11 +106,11 @@
                     <group string="Transcription Rules"
                            invisible="transcribe_calls == False">
                       <field name="transcription_rules">
-                        <list editable="bottom">
+                        <tree editable="bottom">
                           <field name="id"/>
                           <field name="calling_number"/>
                           <field name="called_number"/>
-                        </list>
+                        </tree>
                       </field>
                     </group>
                   </group>

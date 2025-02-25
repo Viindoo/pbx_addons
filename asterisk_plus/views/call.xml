@@ -4,21 +4,21 @@
   <record id="call_channels_action" model="ir.actions.act_window">
     <field name="name">Call Channels</field>
     <field name="res_model">asterisk_plus.channel</field>
-    <field name="view_mode">list,form</field>
+    <field name="view_mode">tree,form</field>
     <field name="domain">[('call', '=', active_id)]</field>
   </record>
 
   <record id="asterisk_plus_active_calls_action" model="ir.actions.act_window">
     <field name="name">Active Calls</field>
     <field name="res_model">asterisk_plus.call</field>
-    <field name="view_mode">list,form</field>
+    <field name="view_mode">tree,form</field>
     <field name="domain">[('is_active', '=', True)]</field>
   </record>
 
   <record id="asterisk_plus_calls_history_action" model="ir.actions.act_window">
     <field name="name">Call History</field>
     <field name="res_model">asterisk_plus.call</field>
-    <field name="view_mode">list,form,graph,pivot</field>
+    <field name="view_mode">tree,form,graph,pivot</field>
     <field name="domain">[('is_active', '=', False)]</field>
   </record>
 
@@ -38,7 +38,7 @@
       <field name="name">asterisk_plus_call_list</field>
       <field name="model">asterisk_plus.call</field>
       <field name="arch" type="xml">
-          <list edit="false" create="false" duplicate="false" multi_edit="1">
+          <tree edit="false" create="false" duplicate="false" multi_edit="1">
             <button name="listen" type="object" string="Listen" icon="fa-user-secret"
                     invisible="is_active == False"/>
             <button name="whisper" type="object" string="Whisper" icon="fa-user-plus"
@@ -63,7 +63,7 @@
             <field name="voicemail_icon" widget="html"/>
             <field name="is_active" column_invisible="1"/>
             <field name="is_transfer_icon"/>
-          </list>
+          </tree>
       </field>
     </record>
 
@@ -146,35 +146,39 @@
               <page name="channels" groups="asterisk_plus.group_asterisk_admin" string="Channels"
                     invisible="channels == []">
                 <field name="channels">
-                  <list>
+                  <tree>
                     <field name="channel"/>
                     <field name="state_desc"/>
                     <field name="cause_txt"/>
                     <field name="exten"/>
                     <field name="callerid_num"/>
                     <field name="user"/>
-                  </list>
+                  </tree>
                 </field>
               </page>
               <page name="recordings" string="Recordings"
                     invisible="recordings == []">
                 <field name="recordings">
-                  <list>
-                    <field name="recording_widget" widget="html" nolabel="1" />
-                  </list>
+                  <tree>
+                    <field name="recording_widget" widget="html" nolabel="1"/>
+                  </tree>
                 </field>
               </page>
               <page name="events" string="Events">
                 <field name="events" nolabel="1" options="{'no_open': True}">
-                  <list>
+                  <tree>
                     <field name="event"/>
                     <field name="create_date"/>
-                  </list>
+                  </tree>
                 </field>
               </page>
           </notebook>
         </sheet>
-        <chatter/>
+        <div class="oe_chatter">
+          <field name="message_follower_ids" widget="mail_followers"/>
+          <field name="activity_ids"/>
+          <field name="message_ids" widget="mail_thread"/>
+        </div>
       </form>
     </field>
   </record>
