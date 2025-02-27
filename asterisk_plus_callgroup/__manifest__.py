@@ -10,7 +10,7 @@
     'author': 'Oduist',
     'license': 'Other proprietary',
     'installable': True,
-    'application': True,
+    'application': False,
     'auto_install': False,
     'depends': ['asterisk_plus'],
     'data': [
