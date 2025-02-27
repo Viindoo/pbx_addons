@@ -272,8 +272,8 @@ class Channel(models.Model):
         debug(self, '{} id {} user {} country {}'.format(
             event['Channel'], channel.mapped('id'), channel.user.id, country
         ))
-        if channel.no_call:
-            # Special case not to create a call for the channel.
+        if channel.no_call or channel.exten == '*8':
+            # Special case not to create a call for the channel or call pickup case.
             self.reload_channels()
             return (channel.id, '{} Newchannel ACK'.format(event['Channel']))
         """
@@ -445,8 +445,9 @@ class Channel(models.Model):
         channel.write(data)
         # There is no sense to go ahead if it's impossible to find the call
         if not channel.no_call and not channel.call:
-            debug(channel, '{} id {} failed to match a call'.format(
-                    event['Channel'], channel.id), level='error')
+            if channel.exten != '*8': # Ommit message on call pickup.
+                debug(channel, '{} id {} failed to match a call'.format(
+                        event['Channel'], channel.id), level='error')
             return (channel.id, '{} failed to match a call'.format(event['Channel']))
         # Append an entry to call's events
         if channel.call:
@@ -475,6 +476,16 @@ class Channel(models.Model):
                             event['Channel'], self.env.user.asterisk_server).user
                     if user:
                         call_data['answered_user'] = user.id
+            # Primary channel, channel without call is ignored.
+            elif channel.call.uniqueid == channel.uniqueid:
+                # Ignore answer on primary channel.
+                if len(channel.call.channels) > 1:
+                    if channel.state_desc == 'Up' and channel.call.status != 'answered':
+                        # "Answer" channel. Added when call pickup support was added.
+                        call_data.update({
+                            'status': 'answered',
+                            'answered': convert_unixtime(event.get('EventTime'))
+                        })
             debug(channel,'Call {} update: {}'.format(channel.call.id, call_data))
             channel.call.write(call_data)
         return (channel.id, '{} Newstate ACK'.format(event['Channel']))
@@ -554,6 +565,9 @@ class Channel(models.Model):
                 'call': channel.call.id,
                 'event': 'Channel {} hangup'.format(channel.channel_short),
             })
+        elif channel.parent_channel.call:
+            # Link the channel to the parent call by linked channel (used in call pickup *8).
+            channel.call = channel.parent_channel.call
         # Commit changes before trying to get recording
         self.env.cr.commit()
         self.reload_channels()
