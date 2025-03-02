@@ -84,20 +84,20 @@
                                 </group>
                             </group>                            
                             <group string="Prompt 1">
-                                <field name="voicemail_widget1" widget="html" nolabel="1"
+                                <field name="voicemail_widget1" widget="html" nolabel="1" string="VoiceMail Prompt"
                                        invisible="callgroup_voicemail_prompt1 == False"/>
                                 <field name="prompt_filename1" invisible="1"/>
                                 <field name="callgroup_voicemail_prompt1" string="Manage Prompt" widget="binary" filename="prompt_filename1"/>
                             </group>
                             <group string="Prompt 2">
-                                <field name="voicemail_widget2" widget="html" nolabel="1"
+                                <field name="voicemail_widget2" widget="html" nolabel="1" string="VoiceMail Prompt"
                                        invisible="callgroup_voicemail_prompt2 == False"
                                     />
                                 <field name="prompt_filename2" invisible="1"/>
                                 <field name="callgroup_voicemail_prompt2" string="Manage Prompt" widget="binary" filename="prompt_filename2"/>
                             </group>
                             <group string="Prompt 3">
-                                <field name="voicemail_widget3" widget="html" nolabel="1"
+                                <field name="voicemail_widget3" widget="html" nolabel="1" string="VoiceMail Prompt"
                                        invisible="callgroup_voicemail_prompt3 == False"/>
                                 <field name="prompt_filename3" invisible="1"/>
                                 <field name="callgroup_voicemail_prompt3" string="Manage Prompt" widget="binary" filename="prompt_filename3"/>

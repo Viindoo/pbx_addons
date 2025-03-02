@@ -22,20 +22,21 @@ class SaleOrder(models.Model):
                     ('res_id', '=', rec.id),
                     ('model', '=', 'sale.order')])
 
-    @api.model
-    def create(self, vals):
-        try:
-            if self.env.context.get('call_id'):
-                call = self.env['asterisk_plus.call'].browse(
-                    self.env.context['call_id'])
-                if call.partner:
-                    vals['partner_id'] = call.partner.id
-        except Exception as e:
-            logger.exception(e)
-        res = super(SaleOrder, self).create(vals)
-        if res:
+    @api.model_create_multi
+    def create(self, vals_list):
+        for val in vals_list:
+            try:
+                if self.env.context.get('call_id'):
+                    call = self.env['asterisk_plus.call'].browse(
+                        self.env.context['call_id'])
+                    if call.partner:
+                        val['partner_id'] = call.partner.id
+            except Exception as e:
+                logger.exception(e)
+        recs = super(SaleOrder, self).create(vals_list)
+        if recs:
             if release.version_info[0] >= 17:
                 self.invalidate_model(flush=True)
             else:
                 self.clear_caches()
-        return res
+        return recs
