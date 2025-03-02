@@ -12,18 +12,18 @@
         <page name="gs" string="Grandstream">
           <group>            
             <group>
-                <field name="gs_model" required="1"/>
-                <field name="gs_api_version" required="1"/>
-                <field name="gs_api_url" required="1" placeholder="https://192.168.1.1:8089"/>
-                <field name="gs_api_user" password="1" required="1"/>
-                <field name="gs_api_password" password="1" required="1"/>
+                <field name="gs_model" required="1" string="Model"/>
+                <field name="gs_api_version" required="1" string="API version"/>
+                <field name="gs_api_url" required="1" placeholder="https://192.168.1.1:8089" string="API URL"/>
+                <field name="gs_api_user" password="1" required="1" string="API User"/>
+                <field name="gs_api_password" password="1" required="1" string="API Password"/>
             </group>
             <group>
               <field name="generate_sip_peers" string="WebRTC Phone Users"/>
-              <field name="gs_verify_ssl"/>
-              <field name="gs_model_name"/>
-              <field name="gs_system_time"/>
-              <field name="gs_uptime"/>
+              <field name="gs_verify_ssl" string="Verify SSL"/>
+              <field name="gs_model_name" string="Model Name"/>
+              <field name="gs_system_time" string="System Time"/>
+              <field name="gs_uptime" string="Uptime"/>
             </group>
           </group>
         </page>

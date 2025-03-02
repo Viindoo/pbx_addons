@@ -20,18 +20,19 @@ class Task(models.Model):
                 'asterisk_plus.call'].search_count(
                     [('res_id', '=', rec.id), ('model', '=', 'project.task')])
 
-    @api.model
-    def create(self, vals):
-        res = super(Task, self).create(vals)
-        try:
-            if self.env.context.get('call_id'):
-                call = self.env['asterisk_plus.call'].browse(
-                    self.env.context['call_id'])
-                call.write({
-                    'res_id': res.id,
-                    'model': 'project.task'})
-        except Exception as e:
-            logger.exception(e)
-        if res:
+    @api.model_create_multi
+    def create(self, vals_list):
+        recs = super(Task, self).create(vals_list)
+        for rec in recs:
+            try:
+                if self.env.context.get('call_id'):
+                    call = self.env['asterisk_plus.call'].browse(
+                        self.env.context['call_id'])
+                    call.write({
+                        'res_id': rec.id,
+                        'model': 'project.task'})
+            except Exception as e:
+                logger.exception(e)
+        if recs:
             self.pool.clear_caches()
-        return res
+        return recs
