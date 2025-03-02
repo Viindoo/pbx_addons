@@ -12,9 +12,9 @@ from odoo.addons.asterisk_plus.models.settings import debug
 class YeastarSettings(models.Model):
     _inherit = 'asterisk_plus.server'
 
-    yeastar_api_url = fields.Char('API URL')
-    yeastar_api_client_id = fields.Char('Client ID')
-    yeastar_api_client_secret = fields.Char('Client Secret')
+    yeastar_api_url = fields.Char()
+    yeastar_api_client_id = fields.Char()
+    yeastar_api_client_secret = fields.Char()
     yeastar_access_token_expire_time = fields.Datetime()
     yeastar_access_token = fields.Char()
     yeastar_refresh_token_expire_time = fields.Datetime()
@@ -22,15 +22,15 @@ class YeastarSettings(models.Model):
     yeastar_model = fields.Selection([
         ('p_se', 'P-series Software Edition'),
         ('s', 'S-series'),
-    ], string='Model')
+    ])
     yeastar_api_version = fields.Selection([
         ('api/v1.1.0', 'v1.1.0 (S)'),
         ('openapi/v1.0', 'v1.0 (P SE)')
-    ], string='API version')
-    yeastar_verify_ssl = fields.Boolean(string='Verify SSL', default=True)
-    yeastar_model_name = fields.Char('Model Name', readonly=True)
-    yeastar_system_time = fields.Char('System Time', readonly=True)
-    yeastar_uptime = fields.Char('Uptime', readonly=True)
+    ])
+    yeastar_verify_ssl = fields.Boolean(default=True)
+    yeastar_model_name = fields.Char(readonly=True)
+    yeastar_system_time = fields.Char(readonly=True)
+    yeastar_uptime = fields.Char(readonly=True)
 
     def yeastar_api_request(self, path, method='post', data={},
             refresh_token=False, refresh_count=0, return_json=True):

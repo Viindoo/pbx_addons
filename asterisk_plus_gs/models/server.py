@@ -22,21 +22,21 @@ requests.packages.urllib3.disable_warnings(requests.packages.urllib3.exceptions.
 class gsSettings(models.Model):
     _inherit = 'asterisk_plus.server'
 
-    gs_api_url = fields.Char('API URL',)
-    gs_api_user = fields.Char('API User',)
-    gs_api_password = fields.Char('API Password')
+    gs_api_url = fields.Char()
+    gs_api_user = fields.Char()
+    gs_api_password = fields.Char()
     gs_cookie_expire_time = fields.Datetime()
     gs_cookie = fields.Char()
     gs_model = fields.Selection([
         ('ucm', 'UCMXXXX'),
-        ], string='Model', default='ucm')
+        ], default='ucm')
     gs_api_version = fields.Selection([
         ('1.0', '1.0'),
-        ], string='API version', default='1.0')
-    gs_verify_ssl = fields.Boolean(string='Verify SSL', default=False)
-    gs_model_name = fields.Char('Model Name', readonly=True)
-    gs_system_time = fields.Char('System Time', readonly=True)
-    gs_uptime = fields.Char('Uptime', readonly=True)
+        ], default='1.0')
+    gs_verify_ssl = fields.Boolean(default=False)
+    gs_model_name = fields.Char(readonly=True)
+    gs_system_time = fields.Char(readonly=True)
+    gs_uptime = fields.Char(readonly=True)
 
     def gs_api_request(self, action, data={}, refresh_cookie=False, return_json=True):
         # Set refresh count in order to protect from recursion
