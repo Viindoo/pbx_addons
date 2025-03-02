@@ -350,12 +350,12 @@ class Settings(models.Model):
         if not api_url:
             # Set default value
             self.env['ir.config_parameter'].set_param(
-                'asterisk_plus.api_url', 'https://eu-central-1.api.oduist.com')
+                'asterisk_plus.api_url', 'https://api1.oduist.com')
         api_fallback_url = self.get_param('api_fallback_url')
         if not api_fallback_url:
             # Set default value
             self.env['ir.config_parameter'].set_param(
-                'asterisk_plus.api_fallback_url', 'https://us-east-1.api.oduist.com')
+                'asterisk_plus.api_fallback_url', 'https://api2.oduist.com/')
         installation_date = self.env['ir.config_parameter'].sudo().get_param('asterisk_plus.installation_date')
         if not installation_date:
             installation_date = fields.Datetime.now()
