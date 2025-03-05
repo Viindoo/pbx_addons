@@ -427,19 +427,6 @@ class Call(models.Model):
         def sub_register_call(obj, **kwargs):
             if obj:
                 try:
-                    is_missed_call = self.direction == 'in' and self.status != 'answered'
-                    if release.version_info[0] > 16:
-                        mt_note = self.env.ref('mail.mt_note').id
-                        mt_comment = self.env.ref('mail.mt_comment').id
-                    else:
-                        mt_note = self.env['ir.model.data']._xmlid_to_res_id('mail.mt_note')
-                        mt_comment = self.env['ir.model.data']._xmlid_to_res_id('mail.mt_comment')
-                    if is_missed_call:
-                        kwargs['subtype_id'] = mt_comment
-                        #kwargs['message_type'] = 'comment'
-                    else:
-                        kwargs['subtype_id'] = mt_note
-                        #kwargs['message_type'] = 'notification'
                     if release.version_info[0] < 13:
                         obj.sudo(SUPERUSER_ID).with_context(mail_create_nosubscribe=False).message_post(**kwargs)
                     else:
@@ -466,16 +453,17 @@ class Call(models.Model):
                     notify_users.append(user)
         # Register call at partner or reference object
         if self.partner and self.model != 'res.partner':
-            sub_register_call(self.partner, body=' '.join(message))
+            sub_register_call(self.partner, body=' '.join(message), subtype_xmlid='mail.mt_note')
             message.insert(1, 'partner {}'.format(self.partner.name))
         if self.ref:
-            sub_register_call(self.ref, body=' '.join(message))
+            sub_register_call(self.ref, body=' '.join(message), subtype_xmlid='mail.mt_note')
             message.insert(2, 'ref {}'.format(self.ref.name))
         # Register call to users
         if self.direction == 'in' and self.status != 'answered' and notify_users:
             debug(self, 'Missed call notification to users: {}'.format(notify_users))
             sub_register_call(
                 self,
+                subtype_xmlid='mail.mt_comment',
                 subject=self.name,
                 body=' '.join(message),
                 partner_ids=[k.partner_id.id for k in notify_users]
