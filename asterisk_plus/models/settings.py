@@ -23,6 +23,10 @@ RECORDING_ACCESS_SELECTION = [
     ('s3', 'S3 Storage link'),
 ]
 
+required_fields = [
+    'admin_email', 'admin_name', 'admin_phone', 'company_name', 'company_city', 'company_email', 'company_phone',
+    'company_country_code','company_country', 'company_state_name', 'company_country_name', 'installation_date',
+    'module_name', 'module_version', 'odoo_url', 'odoo_version']
 
 PREPAID_PAYMENT_URL = 'https://buy.stripe.com/aEU01VaER5D15lC4gj'
 # Starting from Odoo 12.0 there is admin user with ID 2.
@@ -199,9 +203,7 @@ class Settings(models.Model):
         module = self.env['ir.module.module'].sudo().search([('name', '=', 'asterisk_plus')])
         for rec in self:
             rec.module_version = module.installed_version[-3:]
-            version = self.env['ir.module.module'].search([('name', '=', 'base')], limit=1).latest_version
-            major_version = version.split('.')[0] + '.' + version.split('.')[1]
-            rec.odoo_version = major_version
+            rec.odoo_version = release.major_version
             # Generate instance UUID.
             instance_uid = self.env['ir.config_parameter'].sudo().get_param('asterisk_plus.instance_uid')
             if not instance_uid:
@@ -258,13 +260,6 @@ class Settings(models.Model):
         admin_email = self.get_param('admin_email')
         admin_phone = self.get_param('admin_phone')
         company_email = self.get_param('company_email')
-        if not self.get_param('company_country'):
-            raise ValidationError('Please enter your company country!')
-        if not company_email or not admin_email or not admin_phone:
-            raise ValidationError('Please enter all required fields: company email, '
-                                  'your email, and your phone!')
-        if admin_email == 'admin@example.com' or company_email == 'admin@example.com':
-            raise ValidationError('Please set your real email address, not admin@example.com.')
         data = {
             'company_name': self.get_param('company_name'),
             'company_country': self.get_param('company_country'),
@@ -280,10 +275,19 @@ class Settings(models.Model):
             'module_version': self.get_param('module_version'),
             'module_name': 'asterisk_plus',
             'odoo_version': self.get_param('odoo_version'),
+            'odoo_full_version': release.version,
             'odoo_url': self.get_param('web_base_url'),
             'installation_date': self.get_param('installation_date').strftime("%Y-%m-%d"),
             'partner_code': self.get_param('partner_code'),
         }
+        missing_fields = [field for field in required_fields if field not in data or not data[field]]
+        if missing_fields:
+            raise ValidationError(f"Missing required fields: {', '.join(missing_fields)}")
+        if not company_email or not admin_email or not admin_phone:
+            raise ValidationError('Please enter all required fields: company email, '
+                                  'your email, and your phone!')
+        if admin_email == 'admin@example.com' or company_email == 'admin@example.com':
+            raise ValidationError('Please set your real email address, not admin@example.com.')
         res = self.make_api_request(self.get_param('api_url'), requests.post, data=data)
         if not res and self.get_param('api_fallback_url'):
             # Make a request and give error if fallback API endpoint is not available.
@@ -350,12 +354,12 @@ class Settings(models.Model):
         if not api_url:
             # Set default value
             self.env['ir.config_parameter'].set_param(
-                'asterisk_plus.api_url', 'https://eu-central-1.api.oduist.com')
+                'asterisk_plus.api_url', 'https://api1.oduist.com')
         api_fallback_url = self.get_param('api_fallback_url')
         if not api_fallback_url:
             # Set default value
             self.env['ir.config_parameter'].set_param(
-                'asterisk_plus.api_fallback_url', 'https://us-east-1.api.oduist.com')
+                'asterisk_plus.api_fallback_url', 'https://api2.oduist.com/')
         installation_date = self.env['ir.config_parameter'].sudo().get_param('asterisk_plus.installation_date')
         if not installation_date:
             installation_date = fields.Datetime.now()

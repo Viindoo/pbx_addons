@@ -19,17 +19,17 @@ class Project(models.Model):
                 'asterisk_plus.call'].search_count(
                     [('res_id', '=', rec.id), ('model', '=', 'project.project')])
 
-    @api.model
-    def create(self, vals):
-        try:
-            if self.env.context.get('call_id'):
-                call = self.env['asterisk_plus.call'].browse(
-                    self.env.context['call_id'])
-                if call.partner:
-                    vals['partner_id'] = call.partner.id
-        except Exception as e:
-            logger.exception(e)
-        res = super(Project, self).create(vals)
+    @api.model_create_multi
+    def create(self, vals_list):
+        for val in vals_list:
+            try:
+                if self.env.context.get('call_id'):
+                    call = self.env['asterisk_plus.call'].browse(self.env.context['call_id'])
+                    if call.partner:
+                        val['partner_id'] = call.partner.id
+            except Exception as e:
+                logger.exception(e)
+        res = super(Project, self).create(vals_list)
         if res:
             if release.version_info[0] >= 17:
                 self.invalidate_model(flush=True)

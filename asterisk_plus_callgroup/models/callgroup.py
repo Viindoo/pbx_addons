@@ -33,18 +33,15 @@ class Callgroup(models.Model):
     # Prompt 1
     callgroup_voicemail_prompt1 = fields.Binary(attachment=True)
     prompt_filename1 = fields.Char(tracking=True)
-    voicemail_widget1 = fields.Char(compute='_get_voicemail_widget',
-                                   string='VoiceMail Prompt')
+    voicemail_widget1 = fields.Char(compute='_get_voicemail_widget')
     # Prompt 2
     callgroup_voicemail_prompt2 = fields.Binary(attachment=True)
     prompt_filename2 = fields.Char(tracking=True)
-    voicemail_widget2 = fields.Char(compute='_get_voicemail_widget',
-                                   string='VoiceMail Prompt')
+    voicemail_widget2 = fields.Char(compute='_get_voicemail_widget')
     # Prompt 3
     callgroup_voicemail_prompt3 = fields.Binary(attachment=True)
     prompt_filename3 = fields.Char(tracking=True)
-    voicemail_widget3 = fields.Char(compute='_get_voicemail_widget',
-                                   string='VoiceMail Prompt')
+    voicemail_widget3 = fields.Char(compute='_get_voicemail_widget')
     #
     active_prompt = fields.Selection(selection=
         [(str(k), 'Prompt %s' % k) for k in range(1,4)],
@@ -77,13 +74,12 @@ class Callgroup(models.Model):
                     rec_id=rec.id,
                     filename=rec.prompt_filename3)
 
-    @api.model
-    def create(self, vals):
-        partner = self.env['res.partner'].create({
-            'name': vals['name'],
-        })
-        vals['partner_id'] = partner.id
-        return super().create(vals)
+    @api.model_create_multi
+    def create(self, vals_list):
+        for val in vals_list:
+            partner = self.env['res.partner'].create({'name': val['name']})
+            val['partner_id'] = partner.id
+        return super().create(vals_list)
 
     def unlink(self):
         # Remove prompts
