@@ -26,34 +26,9 @@ class CallDetail extends Component {
         this.orm = useService('orm')
         this.action = useService('action')
         this.user = uid
-
-        onWillStart(async () => {
-            this.isMaskCallNumber = await this.orm.call('asterisk_plus.user', 'get_param', ['mask_call_number'])
-            await this.getCall(this.state.call.id)
-        })
-    }
-
-    async getCall(id) {
-        const fields = [
-            "id",
-            "duration_human",
-            "called_number",
-            "calling_number",
-            "answered_user",
-            "calling_user",
-            "partner",
-            "direction",
-            "started"
-        ]
-        const [call] = await this.orm.searchRead("asterisk_plus.call", [["id", "=", id]], fields)
-        const answered_user_id = call.answered_user ? call.answered_user[0] : false
-        const caller_number = answered_user_id === this.user ? call.calling_number : call.called_number
-        call.display_caller_number = this.isMaskCallNumber ? maskNumber(caller_number) : caller_number
-        this.state.call = call
     }
 
     async _createPartner() {
-        await this.getCall(this.state.call.id)
         if (this.state.call.partner) {
             this.action.doAction({
                 res_id: this.state.call.partner[0],
@@ -63,12 +38,10 @@ class CallDetail extends Component {
                 views: [[false, 'form']],
             })
         } else {
-            const answered_user = this.state.call.answered_user ? this.state.call.answered_user[0] : false
-            const phone = answered_user === this.user ? this.state.call.calling_number : this.state.call.called_number
             let context = {
                 call_id: this.state.call.id,
-                default_phone: phone,
-                default_name: `Partner ${phone}`
+                default_phone: this.state.call.caller_number,
+                default_name: `Partner ${this.state.call.display_caller_number}`
             }
             this.action.doAction({
                 context,
@@ -125,34 +98,21 @@ export class Calls extends Component {
         })
     }
 
-    _getCalls() {
+    async _getCalls() {
         this.state.calls = []
-        const fields = [
-            "id",
-            "called_number",
-            "calling_number",
-            "answered_user",
-            "calling_user",
-            "partner",
-            "direction",
-            "started"
-        ]
-        this.orm.searchRead(
-            "asterisk_plus.call",
-            ["|", ["calling_user", "=", this.user], ["answered_user", "=", this.user]],
-            fields,
-            {order: "id desc", limit: 20}
-        ).then((records) => {
-            records.forEach(item => {
-                const answered_user = item.answered_user ? item.answered_user[0] : false
-                const call_number = answered_user === this.user ? item.calling_number : item.called_number
-                item.display_caller_number = this.isMaskCallNumber ? maskNumber(call_number) : call_number
-                item.favorite = this.favorites.includes(call_number)
-                const local_time = new Date(`${item.started} UTC`).toLocaleTimeString("en-GB")
-                item.started = `${item.started.split(' ')[0]} ${local_time}`
-            })
-            this.state.calls = records
-        })
+        const domain = ["|", ["calling_user", "=", this.user], ["called_users", "=", this.user]]
+        const records = await this.orm.call("asterisk_plus.call", "get_widget_calls", [domain, 20])
+        for (const item of records) {
+            const call_number = item.calling_user[0] === this.user ? item.called_number : item.calling_number
+            item.direction = item.calling_user[0] === this.user ? 'out' : 'in'
+            item.caller_number = call_number
+            item.display_caller_number = this.isMaskCallNumber ? maskNumber(call_number) : call_number
+            item.favorite = this.favorites.includes(call_number)
+            const local_time = new Date(`${item.started} UTC`).toLocaleTimeString("en-GB")
+            item.started = `${item.started.split(' ')[0]} ${local_time}`
+        }
+        this.state.calls = records
+        console.log(records)
     }
 
     async _getFavorites() {
@@ -160,8 +120,7 @@ export class Calls extends Component {
         const favorites = await this.orm.searchRead('asterisk_plus_phone.favorite', [], ['phone_number'])
         favorites.forEach((el) => this.favorites.push(el.phone_number))
         this.state.calls.forEach(item => {
-            const answered_user = item.answered_user ? item.answered_user[0] : false
-            const call_number = answered_user === this.user ? item.calling_number : item.called_number
+            const call_number = item.calling_user[0] === this.user ? item.called_number : item.calling_number
             item.display_caller_number = this.isMaskCallNumber ? maskNumber(call_number) : call_number
             item.favorite = this.favorites.includes(call_number)
         })
@@ -178,35 +137,39 @@ export class Calls extends Component {
 
     async _onClickFavorite(call) {
         const kwargs = {}
-        const answered_user = call.answered_user ? call.answered_user[0] : false
-        kwargs.phone_number = answered_user === this.user ? call.calling_number : call.called_number
+        const isCalling = call.calling_user[0] === this.user
+        kwargs.phone_number = isCalling ? call.called_number : call.calling_number
         if (call.partner) {
             kwargs.partner = call.partner[0]
-        } else if (call.calling_user && call.answered_user) {
-            kwargs.user = answered_user === this.user ? call.calling_user[0] : call.answered_user[0]
         } else {
-            kwargs.name = kwargs.phone_number
+            if (call.calling_user && isCalling) {
+                kwargs.user = call.called_users[0]
+            } else if (call.called_users.length > 0 && !isCalling) {
+                kwargs.user = call.calling_user[0]
+            } else {
+                kwargs.name = kwargs.phone_number
+            }
         }
 
         const domain = [["phone_number", "=", kwargs.phone_number]]
-        const getFavorite = await this.orm.search('asterisk_plus_phone.favorite', domain)
+        const favorite = await this.orm.search('asterisk_plus_phone.favorite', domain)
 
-        if (getFavorite.length === 0) {
-            await this.orm.create('asterisk_plus_phone.favorite', [kwargs])
+        if (favorite.length === 0) {
+            await this.orm.create('asterisk_plus_phone.favorite', kwargs)
             this.notification.add('Added to Favorite!', {title: 'Phone', type: 'info'})
-            this._getFavorites()
-        } else {
-            await this.orm.unlink("asterisk_plus_phone.favorite", getFavorite, {})
             await this._getFavorites()
-            this.notification.add('Removed to Favorite!', {title: 'Phone', type: 'info'})
+        } else {
+            await this.orm.unlink("asterisk_plus_phone.favorite", favorite, {})
+            await this._getFavorites()
+            this.notification.add('Removed from Favorite!', {title: 'Phone', type: 'info'})
         }
     }
 
-    _open_detail(call) {
+    _openDetail(call) {
         this.state.call = call
     }
 
-    _close_call_detail() {
+    _closeCallDetail() {
         this.state.call = null
         this._getCalls()
     }
