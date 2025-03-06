@@ -40,3 +40,31 @@ class Call(models.Model):
         if 'partner' in values:
             self.recently.partner = values['partner']
         return super(Call, self).write(values)
+
+    @api.model
+    def get_widget_calls(self, domain, limit=None, offset=0, order='id desc', fields=[]):
+        calls = self.env['asterisk_plus.call'].search(domain)
+        read_fields = self.get_widget_fields()
+        payload = []
+        if isinstance(fields, list):
+            read_fields.extend(fields)
+        for call in calls:
+            call_data = call.read(read_fields)[0]
+            if call.called_users:
+                call_data.update({'called_users': list(call.called_users.read(['id', 'name'])[0].values())})
+            payload.append(call_data)
+        return payload
+
+    @staticmethod
+    def get_widget_fields():
+        return [
+            "id",
+            "duration_human",
+            "called_number",
+            "calling_number",
+            "called_users",
+            "calling_user",
+            "partner",
+            "direction",
+            "started"
+        ]
