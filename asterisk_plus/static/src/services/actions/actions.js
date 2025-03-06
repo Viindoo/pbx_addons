@@ -40,7 +40,7 @@ export const pbxActionService = {
     },
 
     asterisk_plus_handle_open_record: function (message) {
-        // console.log('Opening record form')
+        if (!this.action || !this.action.currentController) return
         let action = this.action.currentController.action
         if (action.res_model == 'asterisk_plus.call') {
             this.action.doAction({
@@ -55,6 +55,7 @@ export const pbxActionService = {
     },
 
     asterisk_plus_handle_reload_view: function (message) {
+        if (!this.action || !this.action.currentController) return
         const action = this.action.currentController.action
         if (action.res_model === message.model) {
             this.bus.trigger("ROUTE_CHANGE")
