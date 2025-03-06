@@ -112,7 +112,6 @@ export class Calls extends Component {
             item.started = `${item.started.split(' ')[0]} ${local_time}`
         }
         this.state.calls = records
-        console.log(records)
     }
 
     async _getFavorites() {
@@ -155,7 +154,7 @@ export class Calls extends Component {
         const favorite = await this.orm.search('asterisk_plus_phone.favorite', domain)
 
         if (favorite.length === 0) {
-            await this.orm.create('asterisk_plus_phone.favorite', kwargs)
+            await this.orm.create('asterisk_plus_phone.favorite', [kwargs])
             this.notification.add('Added to Favorite!', {title: 'Phone', type: 'info'})
             await this._getFavorites()
         } else {
