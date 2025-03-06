@@ -2,10 +2,10 @@
 
 import {useService} from "@web/core/utils/hooks"
 import {Component, useState, onWillStart} from "@odoo/owl"
-import {session} from "@web/session"
 import {maskNumber} from "@asterisk_plus_phone/js/utils"
+import {user} from "@web/core/user"
 
-const uid = session.uid
+const uid = user.userId
 
 class CallDetail extends Component {
     static template = 'asterisk_plus_phone.call_detail'

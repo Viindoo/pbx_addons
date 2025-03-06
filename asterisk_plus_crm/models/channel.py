@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*
 
 import logging
-from odoo import models, fields, api
+from odoo import models, fields, api, release
 from odoo.exceptions import ValidationError
 from odoo.addons.asterisk_plus.models.settings import debug
 
@@ -14,7 +14,7 @@ class CrmChannel(models.Model):
 
     @api.model
     def on_ami_hangup(self, event):
-        self.check_access_rights('create', raise_exception=True)
+        self.check_access_rights('create', raise_exception=True) if release.version_info[0] < 18 else self.check_access('create')
         ret = super().on_ami_hangup(event)
         if not ret[0]:
             return ret
