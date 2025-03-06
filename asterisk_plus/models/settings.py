@@ -25,7 +25,7 @@ RECORDING_ACCESS_SELECTION = [
 
 required_fields = [
     'admin_email', 'admin_name', 'admin_phone', 'company_name', 'company_city', 'company_email', 'company_phone',
-    'company_country_code','company_country', 'company_state_name', 'company_country_name', 'installation_date',
+    'company_country_code','company_country', 'company_country_name', 'installation_date',
     'module_name', 'module_version', 'odoo_url', 'odoo_version']
 
 PREPAID_PAYMENT_URL = 'https://buy.stripe.com/aEU01VaER5D15lC4gj'
