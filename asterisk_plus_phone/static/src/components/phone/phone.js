@@ -643,7 +643,6 @@ export class Phone extends Component {
     }
 
     failNotify(sound, microphone, cause) {
-        console.log({sound, microphone, cause})
         if (sound && microphone) {
             this.notify(cause, {title: 'Failed', sticky: false, type: 'danger'})
         } else {
