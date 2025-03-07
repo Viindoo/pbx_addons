@@ -25,7 +25,7 @@ RECORDING_ACCESS_SELECTION = [
 
 required_fields = [
     'admin_email', 'admin_name', 'admin_phone', 'company_name', 'company_city', 'company_email', 'company_phone',
-    'company_country_code','company_country', 'company_state_name', 'company_country_name', 'installation_date',
+    'company_country_code','company_country', 'company_country_name', 'installation_date',
     'module_name', 'module_version', 'odoo_url', 'odoo_version']
 
 PREPAID_PAYMENT_URL = 'https://buy.stripe.com/aEU01VaER5D15lC4gj'
@@ -252,26 +252,19 @@ class Settings(models.Model):
                 instance_uid = str(uuid.uuid4())
             self.env['ir.config_parameter'].set_param('asterisk_plus.instance_uid', instance_uid)
 
-    def register_instance(self):
-        if not self.env.user.has_group('base.group_system'):
-            raise ValidationError('Only Odoo admin can do it!')
-        if self.get_param('is_registered'):
-            raise ValidationError('This instance is already registered!')
-        admin_email = self.get_param('admin_email')
-        admin_phone = self.get_param('admin_phone')
-        company_email = self.get_param('company_email')
-        data = {
+    def prepare_registration_data(self):
+        return {
             'company_name': self.get_param('company_name'),
             'company_country': self.get_param('company_country'),
             'company_state_name': self.get_param('company_state_name'),
             'company_country_code': self.get_param('company_country_code'),
             'company_country_name': self.get_param('company_country_name'),
-            'company_email': company_email,
+            'company_email': self.get_param('company_email'),
             'company_city': self.get_param('company_city'),
             'company_phone': self.get_param('company_phone'),
             'admin_name': self.get_param('admin_name'),
-            'admin_email': admin_email,
-            'admin_phone': admin_phone,
+            'admin_email': self.get_param('admin_email'),
+            'admin_phone': self.get_param('admin_phone'),
             'module_version': self.get_param('module_version'),
             'module_name': 'asterisk_plus',
             'odoo_version': self.get_param('odoo_version'),
@@ -280,13 +273,22 @@ class Settings(models.Model):
             'installation_date': self.get_param('installation_date').strftime("%Y-%m-%d"),
             'partner_code': self.get_param('partner_code'),
         }
+
+    def register_instance(self):
+        if not self.env.user.has_group('base.group_system'):
+            raise ValidationError('Only Odoo admin can do it!')
+        if self.get_param('is_registered'):
+            raise ValidationError('This instance is already registered!')
+        data = self.prepare_registration_data()
         missing_fields = [field for field in required_fields if field not in data or not data[field]]
         if missing_fields:
             raise ValidationError(f"Missing required fields: {', '.join(missing_fields)}")
-        if not company_email or not admin_email or not admin_phone:
+        if not self.get_param('company_email') or not self.get_param('admin_email') or \
+                not self.get_param('admin_phone'):
             raise ValidationError('Please enter all required fields: company email, '
                                   'your email, and your phone!')
-        if admin_email == 'admin@example.com' or company_email == 'admin@example.com':
+        if self.get_param('admin_email') == 'admin@example.com' or \
+                self.get_param('company_email') == 'admin@example.com':
             raise ValidationError('Please set your real email address, not admin@example.com.')
         res = self.make_api_request(self.get_param('api_url'), requests.post, data=data)
         if not res and self.get_param('api_fallback_url'):
