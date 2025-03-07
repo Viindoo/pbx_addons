@@ -44,7 +44,7 @@ class ProjectCall(models.Model):
             'res_model': 'project.task',
             'name': 'Call Task',
             'view_mode': 'form',
-            'view_type': 'form',
+            'views': [[False, 'form']],
             'target': 'current',
             'context': context,
         }
