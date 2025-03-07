@@ -486,7 +486,7 @@ class Call(models.Model):
                 'res_id': self.partner.id,
                 'name': 'Call Partner',
                 'view_mode': 'form',
-                'view_type': 'form',
+                'views': [[False, 'form']],
                 'target': 'current',
                 'context': context,
             }

@@ -403,7 +403,7 @@ class Settings(models.Model):
             'res_id': rec.id,
             'name': 'General Settings',
             'view_mode': 'form',
-            'view_type': 'form',
+            'views': [[False, 'form']],
             'target': 'current',
         }
 
