@@ -154,7 +154,6 @@ class PbxUser(models.Model):
                 'res_model': 'asterisk_plus.user',
                 'name': 'Users',
                 'view_mode': 'tree,form' if release.version_info[0] <= 17 else 'list,form',
-                'views': [[False, 'form']],
                 'target': 'current',
             }
         else:
@@ -166,7 +165,6 @@ class PbxUser(models.Model):
                 'res_id': self.env.user.asterisk_users.id,
                 'name': 'User',
                 'view_mode': 'form',
-                'views': [[False, 'form']],
                 'target': 'current',
             }
 
