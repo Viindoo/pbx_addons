@@ -175,7 +175,6 @@ class CrmCall(models.Model):
                 'res_id': self.ref.id,
                 'name': 'Call Lead',
                 'view_mode': 'form',
-                'view_type': 'form',
                 'target': 'current',
                 'context': context,
             }
