@@ -239,7 +239,7 @@ class Recording(models.Model):
         # Create a recording
         rec = self.create(vals)
         if self.env['asterisk_plus.settings'].sudo().get_param('transcribe_calls'):
-            self.get_transcript(fail_silently=True)
+            rec.get_transcript(fail_silently=True)
         return True
 
     @api.model
@@ -346,6 +346,13 @@ class Recording(models.Model):
 
     def get_transcript(self, fail_silently=False):
         self.ensure_one()
+        openai_api_key = self.env['asterisk_plus.settings'].sudo().get_param('openai_api_key')
+        if not openai_api_key:
+            if fail_silently:
+                logger.warning('OpenAI key is not set! Not doing call transcription.')
+                return
+            else:
+                raise ValidationError('OpenAI API key is not set!')
         # First check if the call matches the transcription rules.
         if fail_silently and not self.env['asterisk_plus.transcription_rule'].sudo().check_rules(
                 self.calling_number, self.called_number):
@@ -353,7 +360,7 @@ class Recording(models.Model):
         # We passed the rules, let's do the transcription!
         try:
             data = {
-                'openai_api_key': self.env['asterisk_plus.settings'].sudo().get_param('openai_api_key'),
+                'openai_api_key': openai_api_key,
                 'summary_prompt': self.env['asterisk_plus.settings'].sudo().get_param('summary_prompt'),
                 'completion_model': self.env['asterisk_plus.settings'].sudo().get_param('completion_model'),
             }
