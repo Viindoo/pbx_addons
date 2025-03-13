@@ -215,8 +215,13 @@ class AsteriskPlusController(http.Controller):
                 raise
         else:
             try:
-                env = http.request.env
-                return self._initialize_server(env)
+                dbname = http.request.env.cr.dbname
+                if not dbname:
+                    logger.error('You must specify db parameter!')
+                    return error_response('You must specify db paramater!')
+                with registry(dbname).cursor() as cr:
+                    env = Environment(cr, SUPERUSER_ID, {})
+                    return self._initialize_server(env)
             except Exception as e:
                 if 'request not bound to a database' in str(e):
                     logger.error('You must specify db parameter!')
