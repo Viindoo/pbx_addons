@@ -216,6 +216,8 @@ class AsteriskPlusController(http.Controller):
         else:
             try:
                 env = http.request.env
+                if not env:
+                    raise Exception('request not bound to a database')
                 return self._initialize_server(env)
             except Exception as e:
                 if 'request not bound to a database' in str(e):
