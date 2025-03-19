@@ -1,5 +1,5 @@
 import logging
-from odoo import api, models, fields
+from odoo import api, models, fields, release
 
 logger = logging.getLogger(__name__)
 
@@ -34,5 +34,8 @@ class Task(models.Model):
             except Exception as e:
                 logger.exception(e)
         if recs:
-            self.pool.clear_caches()
+            if release.version_info[0] >= 17:
+                self.env.registry.clear_cache()
+            else:
+                self.clear_caches()
         return recs
