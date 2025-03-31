@@ -414,7 +414,7 @@ class Recording(models.Model):
             except Exception as e:
                 logger.error('Cannot register summary: %s', e)
         # Register summary if reference is linked.
-        if rec.call.ref and data.get('summary') and register_summary:
+        if rec.call.ref and not rec.call.model == 'res.partner' and data.get('summary') and register_summary:
             obj = rec.call.ref
             try:
                 if release.version_info[0] < 14:
