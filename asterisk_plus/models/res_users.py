@@ -32,9 +32,13 @@ class ResUser(models.Model):
     def _manage_pbx_users(self):
         if self.env.context.get('install_mode'):
             return
-        server = self.env.ref('asterisk_plus.default_server')
+        server = self.env.ref('asterisk_plus.default_server').sudo()
         if not server.auto_create_pbx_users:
             debug(self, 'Auto create PBX users not enabled.')
+            return
+        if not (self.env.user.has_group('base.group_erp_manager') or
+                self.env.user.has_group('base.group_system')):
+            logger.warning('Skippung PBX users auto create.')
             return
         add_pbx_users = []
         remove_pbx_users = []
@@ -44,10 +48,10 @@ class ResUser(models.Model):
             else:
                 remove_pbx_users.append(rec)
         if add_pbx_users:
-            self.env['asterisk_plus.user'].auto_create(add_pbx_users)
+            self.env['asterisk_plus.user'].sudo().auto_create(add_pbx_users)
         if remove_pbx_users:
             for user in remove_pbx_users:
-                pbx_user = self.env['asterisk_plus.user'].search([('user', '=', user.id)])
+                pbx_user = self.env['asterisk_plus.user'].sudo().search([('user', '=', user.id)])
                 pbx_user.channels.unlink()
                 pbx_user.unlink()
 
@@ -56,6 +60,3 @@ class ResUser(models.Model):
             # There is an unique constraint to limit 1 user per server.
             rec.asterisk_server = self.env['asterisk_plus.server'].search(
                 [('user', '=', rec.id)], limit=1)
-
-    def get_pbx_user_settings(self):
-        return True
