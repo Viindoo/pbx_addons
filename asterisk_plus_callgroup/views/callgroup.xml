@@ -4,7 +4,7 @@
     <record id="asterisk_plus_callgroup_action" model="ir.actions.act_window">
         <field name="name">Call Groups</field>
         <field name="res_model">asterisk_plus.callgroup</field>
-        <field name="view_mode">tree,form</field>        
+        <field name="view_mode">tree,form</field>
     </record>
 
     <record id='calls_action' model='ir.actions.act_window'>
