@@ -2,7 +2,7 @@
 # -*- encoding: utf-8 -*-
 {
     'name': 'Asterisk Plus',
-    'live_test_url': 'https://pbx-demo-15.oduist.com/',
+    'live_test_url': 'https://pbx-demo-18.oduist.com/',
     'author': 'Oduist',
     'price': 0,
     'version': '4.0.1',

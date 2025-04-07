@@ -85,8 +85,8 @@
                 </div>
                 <div class="p-2">
                   <field name="channels" select="0" mode="tree"
-                    domain="[('asterisk_user', '=', id)]"
-                    context="{'default_asterisk_user': id}">
+                      domain="[('asterisk_user', '=', id)]"
+                      context="{'default_asterisk_user': id}">
                     <tree name="channels" editable="bottom">
                       <field name="sequence" widget="handle"/>
                       <field name="name" placeholder="PJSIP/101"/>
