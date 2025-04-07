@@ -381,7 +381,6 @@ class Recording(models.Model):
                 raise ValidationError('Transcription error: %s' % e)
     @api.model
     def update_transcript(self, data, rec_id=None, notify_uid=None):
-        print(111, data)
         rec = self.browse(rec_id)
         vals = {
             'transcript': data.get('transcript'),
@@ -402,9 +401,9 @@ class Recording(models.Model):
                 'Transcription updated', notify_uid=notify_uid)
             self.env['asterisk_plus.settings'].asterisk_plus_reload_view('asterisk_plus.recording')
         # Register summary if partner is linked.
-        if self.partner and data.get('summary') and self.env[
-                'asterisk_plus.settings'].sudo().get_param('register_summary'):
-            obj = self.partner
+        register_summary = self.env['asterisk_plus.settings'].sudo().get_param('register_summary')
+        if rec.partner and data.get('summary') and register_summary:
+            obj = rec.partner
             try:
                 if release.version_info[0] < 14:
                     obj.sudo(SUPERUSER_ID).message_post(body=data['summary'])
@@ -414,6 +413,19 @@ class Recording(models.Model):
                 self.env['asterisk_plus.settings'].asterisk_plus_reload_view('res.partner')
             except Exception as e:
                 logger.error('Cannot register summary: %s', e)
+        # Register summary if reference is linked.
+        if rec.call.ref and not rec.call.model == 'res.partner' and data.get('summary') and register_summary:
+            obj = rec.call.ref
+            try:
+                if release.version_info[0] < 14:
+                    obj.sudo(SUPERUSER_ID).message_post(body=data['summary'])
+                else:
+                    obj.with_user(SUPERUSER_ID).message_post(body=data['summary'])
+                # Reload the view of res.partner
+                self.env['asterisk_plus.settings'].asterisk_plus_reload_view(rec.call.model)
+            except Exception as e:
+                logger.error('Cannot register summary: %s', e)
+
         return True
 
 ##########  END OF TRANSCRIPTION METHODS #########################################################
