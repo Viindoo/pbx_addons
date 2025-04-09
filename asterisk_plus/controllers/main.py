@@ -6,6 +6,10 @@ import uuid
 from odoo import http, SUPERUSER_ID, registry, release
 from odoo.api import Environment
 from werkzeug.exceptions import BadRequest, NotFound
+from odoo.modules.registry import Registry
+
+if release.version_info[0] > 17:
+    registry = Registry
 
 logger = logging.getLogger(__name__)
 
