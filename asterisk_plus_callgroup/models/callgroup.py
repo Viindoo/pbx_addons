@@ -125,18 +125,6 @@ class Callgroup(models.Model):
                 if filename:
                     check_prompt_name(filename)
 
-    @api.constrains('prompt_filename2')
-    def _check_prompt_filename2(self):
-        for rec in self:
-            if rec.prompt_filename2:
-                self._check_name(rec.prompt_filename2)
-
-    @api.constrains('prompt_filename3')
-    def _check_prompt_filename3(self):
-        for rec in self:
-            if rec.prompt_filename3:
-                self._check_name(rec.prompt_filename3)
-
     def _get_calls_count(self):
         for rec in self:
             rec.calls_count = self.env['asterisk_plus.call'].search_count(
