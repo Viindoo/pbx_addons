@@ -95,6 +95,7 @@ export class Phone extends Component {
             phone_stun_server: '',
             phone_websocket: '',
             phone_realm: '',
+            sip_auth_user: ''
         }
         this.sipRegistered = false
         this.lastActiveTab = this.tabs.phone
@@ -219,7 +220,7 @@ export class Phone extends Component {
 
         onMounted(() => {
             for (let key in this.phone_configs) {
-                if (!this.phone_configs[key]) {
+                if (key !== 'sip_auth_user' && !this.phone_configs[key]) {
                     console.error(`Missing config: "${key}" for Phone!`)
                     this.state.isActive = false
                 }
