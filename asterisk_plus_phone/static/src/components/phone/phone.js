@@ -460,7 +460,6 @@ export class Phone extends Component {
             phone_stun_server,
             phone_realm,
         } = self.phone_configs
-        console.log(1111, this.phone_sip_auth_user_enabled, sip_auth_user)
 
         try {
             self.socket = new JsSIP.WebSocketInterface(phone_websocket)
