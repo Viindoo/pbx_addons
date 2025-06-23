@@ -4,7 +4,7 @@
     'live_test_url': 'https://pbx-demo-18.oduist.com/',
     'description': """Make and receive calls from Odoo.""",
     'currency': 'EUR',
-    'price': '0',
+    'price': 0,
     'version': '1.9.2',
     'category': 'Phone',
     'author': 'Oduist',
