@@ -75,6 +75,7 @@ class Call(models.Model):
             ('asterisk_plus.user', 'Users')],
         compute='_get_ref',
         inverse='_set_ref')
+    show_ref = fields.Boolean(compute='_get_ref')
     ref_name = fields.Char(compute='_get_ref_name')
     notes = fields.Html()
     duration = fields.Integer(readonly=True, compute='_get_duration', store=True)
@@ -278,11 +279,18 @@ class Call(models.Model):
         # We need a reference field to be computed because we want to
         # search and group by model.
         for rec in self:
+            rec.show_ref = True
             if rec.model and rec.model in self.env:
                 try:
-                    rec.ref = '%s,%s' % (rec.model, rec.res_id or 0)
+                    if self.env[rec.model].check_access_rights('read', raise_exception=False) and self.env[rec.model].browse(rec.res_id)._filter_access_rules_python('read'):
+                        rec.ref = '%s,%s' % (rec.model, rec.res_id or 0)
+                    else:
+                        rec.show_ref = False
+                        rec.ref = None
                 except ValueError as e:
                     logger.warning(e)
+                    rec.ref = None
+                except Exception as e:
                     rec.ref = None
             else:
                 rec.ref = None

@@ -122,7 +122,8 @@
                       </div>
                     </div>
                     <field name="partner" context="{'call_id': id}"/>
-                    <field name="ref" context="{'call_id': id}"/>
+                    <field name="show_ref" invisible="1"/>
+                    <field name="ref" context="{'call_id': id}" invisible="not show_ref"/>
                   </group>
                   <group>
                     <field name="started"/>
