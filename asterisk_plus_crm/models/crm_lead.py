@@ -22,9 +22,22 @@ class Lead(models.Model):
     mobile_normalized = fields.Char(compute='_get_phone_normalized',
                                     index=True, store=True)
 
+    # Các field ảnh hưởng tới kết quả ormcache get_lead_by_number().
+    # CẢNH BÁO COUPLING: phải đồng bộ tay với 2 nguồn phụ thuộc của get_lead_by_number():
+    #   1) domain trong _search_lead_by_number() (active, stage_id, phone_normalized, mobile_normalized)
+    #   2) @api.depends của _get_phone_normalized() (phone, mobile, partner_id, country_id)
+    # Nếu sửa domain hoặc depends đó mà quên cập nhật set này -> cache không được xoá -> mis-route cuộc gọi.
+    _CALL_ROUTING_FIELDS = {
+        'phone', 'mobile', 'phone_normalized', 'mobile_normalized',
+        'partner_id', 'country_id', 'active', 'stage_id',
+    }
+
     def write(self, values):
         res = super(Lead, self).write(values)
-        if res:
+        # registry.clear_cache() xoá TOÀN BỘ ormcache (gồm cả cache của viin_approval,
+        # ACL, fields...). Chỉ clear khi field ảnh hưởng tới get_lead_by_number() đổi,
+        # tránh đập cache trên mọi lần ghi lead.
+        if res and self._CALL_ROUTING_FIELDS.intersection(values):
             if release.version_info[0] >= 17:
                 self.env.registry.clear_cache()
             else:
